@@ -70,6 +70,7 @@ main{flex:1;padding:20px 22px 60px;min-width:0}
 .t-meta{font-size:.75rem;color:var(--ink2);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .t-guide{font-size:.78rem;color:#455062;background:#f6f8fc;border-radius:8px;padding:7px 10px;margin-top:7px;line-height:1.7}
 .t-guide b{color:var(--main)}
+.t-tools{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
 .prog{height:7px;background:#edf0f6;border-radius:4px;overflow:hidden;margin-top:7px}
 .prog>i{display:block;height:100%;background:var(--main);border-radius:4px;transition:width .3s}
 .frm-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -168,10 +169,10 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
 <!-- ============ 今日计划 ============ -->
 <section class="page show" id="page-today">
   <h2 class="paget">今日计划</h2>
-  <p class="paged">按各科目标完成日自动拆分每日任务并排定到具体钟点；每项任务下方都写着「具体怎么干」，照着做就行。</p>
+  <p class="paged">每天按你的真实承受量排：只主攻最紧的 1–2 科，每科一段，其余科目按紧迫度轮流；每项任务下方写清「具体怎么干」，做完随时可删改。</p>
 
   <div class="card">
-    <h3>🛠️ 今日计划生成器</h3>
+    <h3>🛠️ 今日计划生成器 <span class="tag tag-gray">平台替你选科，你不用纠结</span></h3>
     <div class="frm-row">
       <div><label class="fl">日期</label><input type="date" id="genDate"></div>
       <div><label class="fl">开始学习时间</label><input type="time" id="genStart" value="18:30"></div>
@@ -192,9 +193,17 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
         <button class="btn btn-primary" onclick="generateDay()">⚡ 生成 / 重新生成</button>
       </div>
     </div>
+    <div class="flex" style="margin-top:2px">
+      <span class="mut">临时情况？一键切成小份：</span>
+      <button class="btn btn-ghost btn-sm" onclick="quickGen(30)">⏱ 今天只有 30 分钟</button>
+      <button class="btn btn-ghost btn-sm" onclick="quickGen(60)">⏱ 只有 1 小时</button>
+      <button class="btn btn-ghost btn-sm" onclick="quickGen(0)">↺ 恢复正常</button>
+    </div>
     <div id="gapWarn"></div>
-    <div class="note">规则：① <b>可用时间不用你估</b>——平台按「预计学到 − 开始时间 − 已上报杂事」自动计算；② <b>昨天没做完的自动置顶</b>；③ 没看完课绝不安排对应刷题；④ 各科按「剩余课时 ÷ 距目标日天数」匀速分配，<b>绝不短期冲刺</b>；⑤ 生成后排定到几点几分，自动绕开杂事时段；白天突然有事就用下方「一键重排」。</div>
+    <div class="note">怎么运作：① 可用时间不用你估——按「预计学到 − 开始时间 − 已上报杂事」自动算；② 每天只排 <b>1–2 科</b>，每科就 <b>一段</b>，不会把所有科堆到一天；③ 看课任务上的分钟数是<b>「今天听多久」</b>，不是课程本身多长——课有多长不用你数；④ 学完点一下圆圈，填真实用时，平台才排那一段的刷题；⑤ 昨天没做完的自动放最前面；⑥ 生成后随时可删/改时长/改日期。</div>
   </div>
+
+  <div id="careBox"></div>
 
   <div class="card">
     <h3>⚡ 临时有事 · 一键重排</h3>
@@ -204,13 +213,20 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
       <div style="max-width:130px"><label class="fl">结束</label><input type="time" id="disEnd"></div>
       <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="applyDisruption()">重新排程</button></div>
     </div>
-    <div class="mut" id="disResult">上报后，任务时间轴自动绕开该时段；装不下的任务摊到未来 3 天，明日负荷会即时显示。</div>
+    <div class="mut" id="disResult">上报后不会删任务，而是按扣掉该时段后的可用时间整天重排；已完成的不动，没排上的后面几天自动接上。</div>
     <div id="disList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h3>📅 未来 7 天自动排期 <span class="tag tag-gray">平台已排好，不用你选</span></h3>
+    <div class="mut" style="margin-bottom:6px">按各科紧迫度与本周轮转自动安排（每天按基准时长模拟）。实际当天会按你的状态和可用时间微调，但不会漏科。</div>
+    <div id="weekPreview"></div>
   </div>
 
   <div class="grid2">
     <div class="card">
-      <h3>✅ 今日任务清单 <span class="tag" id="todaySummary"></span></h3>
+      <h3>✅ 今日任务清单 <span class="tag" id="todaySummary"></span>
+        <button class="btn btn-ghost btn-sm" onclick="clearDay()">清空未完成</button></h3>
       <div id="taskList"></div>
       <div class="frm-row" style="margin-top:12px">
         <div><input type="text" id="customTask" placeholder="临时加一项任务，如：背单词 30 分钟"></div>
@@ -248,10 +264,10 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
 <!-- ============ 课程与题库 ============ -->
 <section class="page" id="page-courses">
   <h2 class="paget">课程与题库</h2>
-  <p class="paged">你只要告诉关关：考哪科、每个班型总时长多少小时。平台自动拆成学习单元、自动安排到每一天；科目关联已内置，不用你操心。</p>
+  <p class="paged">你只需要告诉关关两件事：考哪科、这门课总共有多少小时。<b>不用拆单元、不用数每节多长</b>——每次学完点一下「记一次学习」，平台按真实用时推进进度，并只在那之后安排对应的刷题。</p>
 
   <div class="card">
-    <h3>＋ 快速建档（按班型填总时长即可）</h3>
+    <h3>＋ 快速建档 <span class="tag tag-gray">只要总时长，别的不用管</span></h3>
     <div class="frm-row">
       <div style="max-width:150px"><label class="fl">证书/领域</label>
         <select id="ncDomain" onchange="fillSubjects()">
@@ -264,27 +280,26 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
         </select></div>
       <div><label class="fl">科目（关联关系已内置）</label><select id="ncSubject"></select></div>
       <div style="max-width:170px"><label class="fl">课程名称/年份</label><input type="text" id="ncSource" placeholder="如：2026 东奥"></div>
-      <div><label class="fl">目标完成日（已按考期预填）</label><input type="date" id="ncTarget"></div>
+      <div><label class="fl">目标完成日（已按考期预填）</label><input type="date" id="ncTarget" onchange="updateNcPreview()"></div>
     </div>
-    <label class="fl">班型与总时长（课程目录里把该班型各节时长相加即可，有几个班型填几行）</label>
+    <label class="fl">总时长（小时）：课程目录里把各讲相加就是总时长，有几个班型填几行；只填一行总时长也行</label>
     <div id="stageRows"></div>
     <button class="btn btn-ghost btn-sm" onclick="addStageRow()">＋ 再加一个班型</button>
-    <div class="frm-row" style="margin-top:14px">
-      <div><label class="fl">每个学习单元时长（分钟）</label><input type="number" id="ncUnit" value="45" min="15" step="5"></div>
-      <div><label class="fl">每单元配套题量（题）</label><input type="number" id="ncQuiz" value="20" min="0"></div>
-      <div style="flex:2;display:flex;align-items:flex-end;justify-content:flex-end"><button class="btn btn-primary" onclick="createCourseQuick()">一键建档并拆分</button></div>
+    <div id="ncPreview" class="note" style="margin-top:12px"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+      <button class="btn btn-primary" onclick="createCourseQuick()">一键建档</button>
     </div>
-    <div class="note warn">例：CPA 会计基础班目录页各节相加共 80 小时，就填「基础班 80」。平台按 45 分钟一个单元自动拆成「基础班·第 1 单元…」，看完一个单元解锁对应 20 题。时长数据以机构 App 为准如实填写，平台不预设任何课时。</div>
+    <div class="note warn">例：CPA 会计基础班目录页各讲相加共 80 小时 → 就填「基础班 80」。<b>不用管有多少讲、每讲多久</b>。建好后每天平台只给你排「今天听多久」，学完点一下、填真实用时，进度和刷题自动跟上。</div>
   </div>
 
   <div class="card">
-    <h3>🔗 内置联动关系（不用你选，自动生效）</h3>
+    <h3>🔗 联动是怎么生效的 <span class="tag tag-green">省时间，不塞任务</span></h3>
     <div class="linkmap">
       <b>CPA《税法》</b> → 税务师《税法一》《税法二》《涉税服务实务》<br>
       <b>CPA《会计》《财务成本管理》</b> → 税务师《财务与会计》<br>
       <b>CPA《会计》《财管》《经济法》</b> → 资产评估师《资产评估相关知识》<br>
       <b>CPA《经济法》</b> → 税务师《涉税服务相关法律》（部分重叠）<br>
-      <span class="mut">依据各科公开考试大纲的知识范围对照。CPA 单元学完后，关联科目的刷题自动纳入队列，趁热打铁。</span>
+      <span class="mut">依据各科公开考试大纲的知识范围对照。<b>联动不是再给你加一份课</b>：你在 CPA 税法上每学一点，税务师税法一/二里与之重叠的部分就少听一点（课程库里「联动省时」会实时上涨），重叠内容直接刷题检验、错题再回补。所有科目仍要完整过一遍，只是不重复劳动。</span>
     </div>
   </div>
 
@@ -335,6 +350,8 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
       <div><label class="fl">每日上限（分钟，重排时不超）</label><input type="number" id="setCap" min="60" step="15"></div>
       <div><label class="fl">状态差时保留比例</label>
         <select id="setBadRatio"><option value="0.5">50%</option><option value="0.7" selected>70%</option></select></div>
+      <div><label class="fl">每天最多主攻几科</label>
+        <select id="setPerDay"><option value="1">1 科（最稳）</option><option value="2" selected>2 科（推荐）</option><option value="3">3 科</option></select></div>
     </div>
     <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
   </div>
@@ -353,19 +370,37 @@ table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78re
 
 <div class="toast" id="toast"></div>
 
-<div class="modal-mask" id="lessonModal">
+<div class="modal-mask" id="segModal">
   <div class="modal">
-    <h3 id="lmTitle">微调课时</h3>
-    <div class="frm-row">
-      <div style="flex:2"><label class="fl">单元名称</label><input type="text" id="lmName" placeholder="如：冲刺班·第 1 单元"></div>
-      <div><label class="fl">时长（分钟）</label><input type="number" id="lmMins" min="1"></div>
-      <div><label class="fl">题量</label><input type="number" id="lmQuiz" min="0" value="20"></div>
-    </div>
-    <div class="note" style="margin:4px 0">批量修正时长：每行一条「第几个单元,分钟」，如「3,62」</div>
-    <textarea id="lmBulk" rows="3" placeholder="3,62&#10;7,38"></textarea>
+    <h3 id="segTitle">这次学了多久？</h3>
+    <div class="mut" id="segCourse" style="margin-bottom:6px"></div>
+    <div id="segHint" style="font-size:.85rem;line-height:1.8;margin-bottom:12px"></div>
+    <div id="segChips" class="flex" style="margin-bottom:10px"></div>
+    <label class="fl">实际用时（分钟）</label>
+    <input type="number" id="segMins" min="1" step="5">
+    <div class="note" style="margin-top:12px">记完后平台会安排「这一段」对应的刷题。学多少记多少，别虚报——数据真实才有意义。</div>
     <div class="foot">
-      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" onclick="saveLessons()">保存</button>
+      <button class="btn btn-ghost" onclick="closeSeg()">没学，先关掉</button>
+      <button class="btn btn-primary" onclick="confirmSeg()">记下来 + 排刷题</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="courseModal">
+  <div class="modal">
+    <h3 id="cmTitle">调整课程</h3>
+    <div class="frm-row">
+      <div style="flex:2"><label class="fl">课程名称</label><input type="text" id="cmName"></div>
+      <div><label class="fl">总时长（小时）</label><input type="number" id="cmTotal" min="1" step="0.5"></div>
+    </div>
+    <div class="frm-row">
+      <div><label class="fl">目标完成日</label><input type="date" id="cmTarget"></div>
+      <div><label class="fl">每学 1 小时配套题量</label><input type="number" id="cmQph" min="0" step="5"></div>
+    </div>
+    <div class="note">改总时长不会动你已学的记录；题量只用来推算「该刷多少题」。</div>
+    <div class="foot">
+      <button class="btn btn-ghost" onclick="closeCourseModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveCourseEdit()">保存</button>
     </div>
   </div>
 </div>
@@ -383,12 +418,19 @@ const SUBJECTS={
   paper:[['SPSS 零基础','2027-02-01'],['Stata 零基础','2027-04-01'],['文献阅读','2027-01-15'],['论文写作与投稿','2027-06-30']]
 };
 const STAGES=['基础班','强化班/拔高班','习题班','冲刺班','串讲班','真题/模考班','其他'];
-const LINKS={
-  'cpa|税法':['cta|税法（一）','cta|税法（二）','cta|涉税服务实务'],
-  'cpa|会计':['cta|财务与会计','cav|资产评估相关知识'],
-  'cpa|财务成本管理':['cta|财务与会计','cav|资产评估相关知识'],
-  'cpa|经济法':['cta|涉税服务相关法律','cav|资产评估相关知识']
+// 联动 = 「复用省时」，不是「再塞一份任务」：
+// 源科目学得越多 → 目标科目里与之重叠的内容只需刷题、不用再重听，需要听的时长自动变少。
+// 比例取自公开考纲的内容重叠程度（税法一对 CPA 税法约五成、财务与会计对会计约三成半等）。
+const LINK_SAVE={
+  'cta|税法（一）':[['cpa|税法',0.50]],
+  'cta|税法（二）':[['cpa|税法',0.45]],
+  'cta|涉税服务实务':[['cpa|税法',0.30]],
+  'cta|财务与会计':[['cpa|会计',0.35],['cpa|财务成本管理',0.25]],
+  'cta|涉税服务相关法律':[['cpa|经济法',0.25]],
+  'cav|资产评估相关知识':[['cpa|会计',0.30],['cpa|财务成本管理',0.25],['cpa|经济法',0.15]]
 };
+// 哪些科目是「联动源」（学它等于同时给别人省时间，排期时略优先）
+const LINK_SRC=new Set(['cpa|税法','cpa|会计','cpa|财务成本管理','cpa|经济法']);
 // 考期锚点（历年规律预估）与刷题缓冲说明：学完截止日 ≠ 考试日，之间是刷题/二轮期
 const EXAM_NOTE={
   cpa:'预计 2027 年 8 月下旬考试，3 月一轮学完后有 5 个多月二轮+刷题期',
@@ -398,8 +440,14 @@ const EXAM_NOTE={
   en:'2027 年 12 月场次冲刺 550+',
   paper:'研二前（2027 年内）完成发表'
 };
+// 预计考试日（仅三证，按历年规律估，以协会公告为准），用于算「学完→考试」缓冲是否够
+const EXAM_EST={cpa:'2027-08-28',cav:'2027-09-15',cta:'2027-11-15'};
+function bufferDays(c){
+  const e=EXAM_EST[c.domain];if(!e)return null;
+  return Math.round((new Date(e+'T00:00:00')-new Date(c.targetDate+'T00:00:00'))/864e5);
+}
 let DB=null;
-function blankDB(){return{settings:{startDate:'2026-11-10',base:180,cap:480,badRatio:0.7},courses:[],plans:{},log:[],createdAt:todayStr()};}
+function blankDB(){return{settings:{startDate:'2026-11-10',base:180,cap:480,badRatio:0.7,perDay:2},courses:[],plans:{},log:[],createdAt:todayStr()};}
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function maxDate(a,b){return a>b?a:b;}
 function startDate(){return DB.settings.startDate||'2026-11-10';}
@@ -407,19 +455,112 @@ function effToday(){return maxDate(todayStr(),startDate());}
 function fmtDate(s){const[a,b,c]=s.split('-');return `${+b}月${+c}日`;}
 function fmtH(m){return m>=60?(Math.round(m/6)/10)+'h':m+'min';}
 function uid(){return Math.random().toString(36).slice(2,9);}
-function daysTo(dateStr){return Math.max(1,Math.ceil((new Date(dateStr+'T00:00:00')-new Date(effToday()+'T00:00:00'))/864e5));}
+function daysTo(dateStr,base){return Math.max(1,Math.ceil((new Date(dateStr+'T00:00:00')-new Date((base||effToday())+'T00:00:00'))/864e5));}
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB));}
-function load(){try{const r=localStorage.getItem(LS_KEY);DB=r?JSON.parse(r):blankDB();}catch(e){DB=blankDB();}}
+function load(){try{const r=localStorage.getItem(LS_KEY);DB=r?JSON.parse(r):blankDB();}catch(e){DB=blankDB();}migrate();}
+function migrate(){
+  DB.settings=DB.settings||{startDate:'2026-11-10',base:180,cap:480,badRatio:0.7};
+  DB.courses=DB.courses||[];DB.plans=DB.plans||{};DB.log=DB.log||[];
+  DB.settings.perDay=DB.settings.perDay||2;
+  // 旧数据补 createdAt：按建档起点算落后度，避免老数据被误判为「严重落后」
+  DB.courses.forEach(c=>{
+    if(!c.createdAt)c.createdAt=DB.createdAt||startDate();
+    // 旧版「课时单元」数据 → 新版「总时长 + 已学分钟」，进度不丢
+    if(Array.isArray(c.lessons)){
+      const anyMins=c.lessons.some(l=>l.mins>0);
+      if(!c.totalMins)c.totalMins=c.lessons.reduce((s,l)=>s+(l.mins>0?l.mins:40),0);
+      if(c.doneMins==null)c.doneMins=c.lessons.filter(l=>l.learned).reduce((s,l)=>s+(l.mins>0?l.mins:40),0);
+      if(c.quizDone==null)c.quizDone=c.lessons.reduce((s,l)=>s+(l.quizDone||0),0);
+      if(!c.qph){const uh=c.totalMins/60;const tq=c.lessons.reduce((s,l)=>s+(l.quiz||0),0);
+        c.qph=uh>0&&tq>0?Math.max(5,Math.round(tq/uh)):20;}
+      c.lessons=undefined;
+      if(!anyMins&&!c.doneMins)c.doneMins=0;
+    }
+    if(c.totalMins==null)c.totalMins=Math.round((c.hours||0)*60);
+    c.doneMins=c.doneMins||0;c.quizDone=c.quizDone||0;c.qph=c.qph||20;
+  });
+  // 旧任务里的 lessonId/quizOf 已无意义：清掉引用，保留任务本身（不丢你昨天没做完的事）
+  Object.keys(DB.plans).forEach(d=>{
+    (DB.plans[d].tasks||[]).forEach(t=>{delete t.lessonId;delete t.quizOf;});
+  });
+}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),3000);}
-function planOf(d){if(!DB.plans[d])DB.plans[d]={mins:DB.settings.base,state:'normal',dayType:'normal',start:'18:30',end:'22:30',tasks:[],disruptions:[],reviewed:null};return DB.plans[d];}
+function planOf(d){if(!DB.plans[d])DB.plans[d]={mins:DB.settings.base,state:'normal',dayType:'normal',start:'18:30',end:'22:30',tasks:[],disruptions:[],reviewed:null,focus:[]};if(!DB.plans[d].focus)DB.plans[d].focus=[];return DB.plans[d];}
 function addLog(date,domain,minutes,kind,courseId){DB.log.push({date,domain,minutes,kind,courseId:courseId||null});}
 function courseById(id){return DB.courses.find(c=>c.id===id);}
-function nextLesson(c){return c.lessons.find(l=>!l.learned)||null;}
-function pendingQuiz(c){let t=0;c.lessons.forEach(l=>{if(l.learned||l.quizUnlocked)t+=Math.max(0,(l.quiz||0)-(l.quizDone||0));});return t;}
-function remainMins(c){return c.lessons.filter(l=>!l.learned).reduce((s,l)=>s+l.mins,0);}
+/* ===== 课时模型：你只填总时长，剩下的平台按「真实已学分钟」推算 =====
+   不再拆单元、不猜每节多长 —— 你学完一段点一下、填一下实际用了多久，
+   平台按真实数据记进度，并只在这之后安排这一段对应的刷题。 */
+function totalMins(c){return Math.max(0,Math.round(c.totalMins||0));}
+// 联动复用：源科目学得越多，目标科目需要"听"的时长越少（重叠内容直接刷题，不重听）
+function linkSave(c){
+  const L=LINK_SAVE[c.domain+'|'+c.subject]||[];
+  let pct=0;
+  L.forEach(k=>{
+    const src=DB.courses.find(x=>(x.domain+'|'+x.subject)===k[0]);
+    if(!src||!totalMins(src))return;
+    pct+=k[1]*Math.max(0,Math.min(1,(src.doneMins||0)/totalMins(src)));
+  });
+  return Math.min(0.45,pct);
+}
+function effTotal(c){return doneMins(c)+remainMins(c);}
+function doneMins(c){return Math.max(0,Math.round(c.doneMins||0));}
+function progressPct(c){const t=totalMins(c);return t>0?Math.min(100,Math.round(doneMins(c)/t*100)):0;}
+// 剩余要听的时间：联动只减免「还没听的部分」，已学记录永远算数，绝不会因为联动提前判定学完
+function remainMins(c){return Math.max(0,Math.round((totalMins(c)-doneMins(c))*(1-linkSave(c))));}
+// 欠题：按「每学 1 小时配多少题」推算已经学过的部分应刷多少题
+function quizDebt(c){
+  const should=Math.round(doneMins(c)/60*(c.qph||20));
+  return Math.max(0,should-(c.quizDone||0));
+}
 function dailyNeed(c){return Math.ceil(remainMins(c)/daysTo(c.targetDate));}
-function activeCourses(){return DB.courses.filter(c=>c.lessons.length&&(nextLesson(c)||pendingQuiz(c)>0)).sort((a,b)=>a.targetDate<b.targetDate?-1:1);}
-function totalDailyNeed(){return activeCourses().reduce((s,c)=>s+dailyNeed(c)+Math.round(pendingQuiz(c)*1.2*0.3),0);}
+function activeCourses(){return DB.courses.filter(c=>remainMins(c)>0||quizDebt(c)>0).sort((a,b)=>a.targetDate<b.targetDate?-1:1);}
+function totalDailyNeed(){return activeCourses().reduce((s,c)=>s+dailyNeed(c)+Math.min(30,Math.round(quizDebt(c)*1.5*0.2)),0);}
+// 落后度（分钟）：按「从建档日到目标日匀速推进」算出此刻本应学完多少，与实学对比。
+// 正数=落后该补，负数=超前可缓。
+function courseDeficit(c,d){
+  const total=effTotal(c);if(total<=0)return 0;
+  const done=doneMins(c);
+  const s=new Date((c.createdAt||startDate())+'T00:00:00');
+  let t=new Date(c.targetDate+'T00:00:00');
+  if(t<=s)t=new Date(s.getTime()+864e5);
+  const now=new Date((d||effToday())+'T00:00:00');
+  const span=(t-s)/864e5,el=Math.max(0,(now-s)/864e5);
+  return Math.round(total*Math.min(1,el/span)-done);
+}
+function fmtD(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+// 本周（周一起算）已排过看课的科目：用来做「周内保底轮转」，避免某科一周都没轮到
+function weekStudied(d){
+  const dt=new Date(d+'T00:00:00'),dow=(dt.getDay()+6)%7,mon=new Date(dt);
+  mon.setDate(dt.getDate()-dow);
+  const ids=new Set();
+  for(let i=0;i<7;i++){
+    const x=new Date(mon);x.setDate(mon.getDate()+i);
+    const p=DB.plans[fmtD(x)];if(!p)continue;
+    (p.tasks||[]).forEach(t=>{if(t.type==='learn'&&t.courseId)ids.add(t.courseId);});
+  }
+  return ids;
+}
+// 紧迫度：既看「已经落后多少」，也看「剩下的量还赶不赶得上」，避免新课永远排不上
+function courseScore(c,d){
+  const def=courseDeficit(c,d);
+  const dl=Math.max(1,daysTo(c.targetDate,d));
+  let sc=def/dl+remainMins(c)/dl*0.6;
+  if(!weekStudied(d).has(c.id))sc*=1.35;                       // 本周没轮到 → 提权
+  if(LINK_SRC.has(c.domain+'|'+c.subject))sc*=1.12;             // 联动源科目优先（能帮别的科省时间）
+  // 饥饿保护：越久没学到的科目越优先，保证远期科目也细水长流，不会拖到考前才突击
+  const gap=daysSinceLearn(c,d);
+  if(gap>=7)sc*=2.4;else if(gap>=4)sc*=1.7;else if(gap>=3)sc*=1.35;
+  return sc;
+}
+// 距上次真正学这门课过了多少天（没学过给一个大数，让它尽快先露面）
+function daysSinceLearn(c,d){
+  let last='';
+  DB.log.forEach(x=>{if(x.courseId===c.id&&x.kind==='learn'&&x.date>last)last=x.date;});
+  if(!last)return 99;
+  const a=new Date(last+'T00:00:00'),b=new Date((d||effToday())+'T00:00:00');
+  return Math.max(0,Math.round((b-a)/864e5));
+}
 
 /* ==================== 导航 ==================== */
 function go(p){
@@ -435,23 +576,17 @@ function guideFor(t){
   const c=t.courseId?courseById(t.courseId):null;
   const src=c?DOMAINS[c.domain].src:'';
   if(t.type==='learn'&&c){
-    const l=c.lessons.find(x=>x.id===t.lessonId);
-    return `<b>怎么干：</b>打开${src} → 我的课程 → ${c.name} → 学「${l?l.name:''}」对应的内容（约 ${l?l.mins:''} 分钟），建议 1.25–1.5 倍速，边看边在讲义划重点；学完<b>立刻</b>做下方配套刷题，别拖。`;
+    return `<b>具体怎么干：</b>① 打开「${src}」→ 我的课程 → ${c.name}；② 从上次停下的地方接着听，1.25–1.5 倍速，边听边在讲义上画重点；③ 听够 <b>${t.minutes} 分钟左右</b>就回来点左边的圆圈 ✔，平台会问你实际用了多久，然后自动排上这一段对应的刷题。<br><span class="mut">这 ${t.minutes} 分钟是「今天投入多久」，不是课程本身多长——课有多长不用你数。</span>`;
   }
-  if(t.type==='quiz'&&t.quizOf&&c){
-    const l=c.lessons.find(x=>x.id===t.quizOf);
-    return `<b>怎么干：</b>打开题库（${src}章节练习或手头纸质习题）→ 做「${l?l.name:''}」对应 ${l?l.quiz:''} 题 → 每道错题写一句错因（知识不会/审题/计算），3 天后重做。`;
+  if(t.type==='quiz'&&c){
+    return `<b>具体怎么干：</b>① 打开「${src}」→ 题库 / 章节练习，选刚学完的那一块；② 做 ${t.questions||''} 题，计时、别翻书；③ 每道错题写一句错因（知识没懂 / 审题 / 计算 / 蒙的）；④ 错题做标记，3 天后平台提醒你重做。`;
   }
-  if(t.type==='quiz'&&c&&c.domain==='gw')
-    return `<b>怎么干：</b>打开粉笔 App → 练习 → 选「${c.subject}」→ 做已学部分的专项题（已学多少刷多少）→ 错题写明错因，本周末重做一遍。`;
-  if(t.type==='quiz'&&c)
-    return `<b>怎么干：</b>把「${c.name}」已学部分欠下的题补上，从最早学过的单元开始刷；错题写错因。`;
   if(/英语/.test(t.title))
-    return `<b>怎么干：</b>① 星火六级词汇：新学 1 个 List + 复习前 3 天的 List（遮住中文回忆）；② 新概念：听音频 1 遍 → 跟读 3 遍 → 合上书复述大意。`;
+    return `<b>具体怎么干：</b>① 星火六级词汇：新学 1 个 List + 复习前 3 天的 List（遮住中文回忆）；② 新概念：听音频 1 遍 → 跟读 3 遍 → 合上书复述大意。`;
   if(/SPSS|Stata|论文/.test(t.title))
-    return `<b>怎么干：</b>打开「专项指南 → SPSS/Stata 学习路径」，按当前阶段学一小节，并在软件里跟着亲手做一遍（光看不算）。`;
-  if(/考公/.test(t.title))
-    return `<b>怎么干：</b>打开粉笔 App 按任务说明执行，错题当天写错因。`;
+    return `<b>具体怎么干：</b>打开「专项指南 → SPSS/Stata 学习路径」，按当前阶段学一小节，并在软件里跟着亲手做一遍（光看不算）。`;
+  if(/错题/.test(t.title))
+    return `<b>具体怎么干：</b>翻出错题本，只做「当时不会」的题；每道题口述一遍正确思路，说不出来就回看对应讲义那一页。`;
   return '';
 }
 
@@ -476,70 +611,119 @@ function generateDay(){
   const end=document.getElementById('genEnd').value||'22:30';
   const dayType=document.getElementById('genDayType').value;
   const p=planOf(d);
-  const kept=p.tasks.filter(t=>t.done);
-  // 可用时间 = 结束-开始-杂事，不用用户估算
+  const kept=p.tasks.filter(t=>t.done);                 // 已完成的永远保留
+  const manual=p.tasks.filter(t=>!t.done&&t.manual);              // 手动添加的任务
+  const autoQ=p.tasks.filter(t=>!t.done&&t.autoFor);              // 今天学完后自动排的刷题，绝不能丢
   let span=t2m(end)-t2m(start);if(span<=0)span+=1440;
   const busyMin=p.disruptions.reduce((s,x)=>s+Math.max(0,t2m(x.e)-t2m(x.s)),0);
   const mins=Math.max(0,span-busyMin);
   p.mins=mins;p.state=state;p.start=start;p.end=end;p.dayType=dayType;
   const typeF=dayType==='busy'?0.6:dayType==='free'?1:0.85;
   let budget=Math.round(mins*typeF*(state==='good'?1.15:state==='bad'?+DB.settings.badRatio:1));
+  if(p.forceCap)budget=Math.min(budget,p.forceCap);      // 「今天只有半小时」模式
+  budget=Math.min(budget,+DB.settings.cap||480);         // 再受「每日上限」约束
+  delete p.forceCap;                                     // 只生效这一次，下次生成恢复正常
   const tasks=[];const tmD=nextDayStr(d);
-  const push=(type,title,minutes,extra={})=>{if(minutes<=0||budget-used(tasks)<=0)return;
-    const m=Math.min(Math.round(minutes),budget-used(tasks));
-    const t={id:uid(),type,title,minutes:m,done:0,defer:0,...extra};t.guide=guideFor(t);tasks.push(t);};
+  const left=()=>Math.max(0,budget-used(tasks));
+  const push=(type,title,minutes,extra={})=>{
+    const m=Math.min(Math.round(minutes),left());
+    if(m<=0)return null;
+    const t={id:uid(),type,title,minutes:m,done:0,defer:0,...extra};
+    t.guide=guideFor(t);tasks.push(t);return t;
+  };
+  if(!DB.courses.length){
+    p.tasks=kept.concat(manual);save();renderToday();
+    document.getElementById('gapWarn').innerHTML='<div class="note warn">⚠ 还没有建档：先去「课程与题库」填「科目 + 总时长（小时）」，平台才知道该给你排什么。</div>';
+    toast('请先到「课程与题库」建档');return;
+  }
 
-  // ① 昨日及以前未完成自动置顶；今日装不下的转存明日，绝不丢失（为未来日期生成时不拉今天的任务）
+  // ① 遗留：最多置顶 2 项（先补旧的），其余整体后移，绝不丢
   const overdue=d<=todayStr()?collectOverdue(d):[];
   let overdueMin=0;
-  overdue.forEach(t=>{
-    if(t.minutes<=budget-used(tasks)){const nt={...t,id:uid(),title:'补 · '+t.title,defer:(t.defer||0)};tasks.push(nt);overdueMin+=nt.minutes;}
-    else planOf(tmD).tasks.unshift({...t,title:'补 · '+t.title});
+  overdue.forEach((t,i)=>{
+    if(i<2&&t.minutes<=left()){const nt={...t,id:uid(),title:'补 · '+t.title};tasks.push(nt);overdueMin+=nt.minutes;}
+    else planOf(tmD).tasks.unshift({...t,id:uid(),title:'补 · '+t.title});
   });
 
-  // ② 各科按「剩余÷距目标日」分配，目标日近者优先
-  const active=activeCourses();
-  const totalNeed=active.reduce((s,c)=>s+dailyNeed(c)+Math.round(pendingQuiz(c)*1.2*0.3),0);
-  for(const c of active){
-    if(budget-used(tasks)<10)break;
-    // 配额=max(日均需求, 一节课时长)：日均需求不足一节课时也要每天至少推进一节（细水长流不等于排不进课）
-    const nl0=nextLesson(c);
-    let alloc=Math.min(Math.max(dailyNeed(c),nl0?nl0.mins:0)+Math.round(pendingQuiz(c)*1.2*0.3),budget-used(tasks));
-    if(alloc<=0)continue;
-    const pq=pendingQuiz(c);
-    if(pq>0){const m=Math.min(Math.round(pq*1.2),Math.max(15,Math.round(alloc*0.35)),alloc);
-      push('quiz',`${c.domain==='gw'?'考公滚动刷题':'补刷欠题'} · ${c.name}（欠 ${pq} 题）`,m,{courseId:c.id});
-      alloc-=m;}
-    let l=null;const sched=new Set();
-    while(alloc>0&&(l=c.lessons.find(x=>!x.learned&&!sched.has(x.id)))&&l.mins<=alloc+8){
-      sched.add(l.id);
-      push('learn',`看课 · ${c.name}｜${l.name}（${l.mins}分钟）`,l.mins,{courseId:c.id,lessonId:l.id});
-      alloc-=l.mins;
-      if(l.quiz>0&&alloc>0){const m=Math.min(Math.round(l.quiz*1.2),alloc);push('quiz',`课后即刷 · ${l.name}（${l.quiz}题）`,m,{courseId:c.id,lessonId:l.id,quizOf:l.id});alloc-=m;}
-    }
-  }
-  if(budget-used(tasks)>10)push('task','英语 · 六级单词 + 新概念朗读/精听',Math.min(30,Math.round(budget*0.1)));
-  const dow=new Date(d+'T00:00:00').getDay();
-  if((dow===2||dow===5||dow===0)&&budget-used(tasks)>15)push('task','论文技能 · SPSS/Stata 学习与实践 40 分钟',40);
+  // ② 手动任务 + 今天已学完自动排的刷题：原样保留（后者是你刚学完的配套题，不能被重排冲掉）
+  autoQ.forEach(t=>tasks.push({...t}));
+  manual.forEach(t=>{if(t.minutes<=left())tasks.push(t);else planOf(tmD).tasks.unshift({...t,id:uid(),title:'补 · '+t.title});});
 
-  let finalTasks=tasks;
-  if(state==='bad'){
-    // 保底模式：每类只留第一项；被砍的任务转存明日，绝不丢失
-    const keep=[];const seen={};
-    for(const t of tasks){const k=t.title.startsWith('补 ·')?'OD'+t.id:(t.type==='learn'?'L'+t.courseId:t.type);
-      if(!seen[k]){seen[k]=1;keep.push(t);}
-      else planOf(tmD).tasks.unshift({...t,title:t.title.startsWith('补 ·')?t.title:'补 · '+t.title});}
-    finalTasks=keep;
+  // ③ 固定轻任务先占额度（英语每天不断；论文技能每周三次）
+  const dow=new Date(d+'T00:00:00').getDay();
+  const fixedPlan=[];
+  if(budget>=90)fixedPlan.push(['英语 · 六级单词 + 新概念朗读/精听',25]);
+  if((dow===2||dow===5||dow===0)&&budget>=200)fixedPlan.push(['论文技能 · SPSS/Stata 动手练一小节',40]);
+  const fixedTotal=fixedPlan.reduce((s,x)=>s+x[1],0);
+
+  // ④ 学习段：今天只主攻 1–2 科，每科就一个「学习段」，不做单元切割
+  let list=activeCourses().filter(c=>remainMins(c)>0)
+    .map(c=>({c,def:courseDeficit(c,d),sc:courseScore(c,d)}))
+    .sort((a,b)=>b.sc!==a.sc?b.sc-a.sc:(a.c.targetDate<b.c.targetDate?-1:1));
+  const weekBefore=weekStudied(d);
+  const focusIds=(p.focus||[]).filter(id=>list.some(x=>x.c.id===id));
+  if(focusIds.length)list=list.filter(x=>focusIds.includes(x.c.id));
+  const perDay=Math.max(1,+DB.settings.perDay||2);
+  const maxCourses=focusIds.length?focusIds.length:(state==='bad'||dayType==='busy'?1:perDay);
+  const segLen=budget>=240?50:budget>=150?45:budget>=90?35:25;   // 一次坐下学多久
+  const roomForLearn=()=>left()-fixedTotal;
+  const studied=[];let placed=0;
+  const startedToday=new Set(p.tasks.filter(t=>t.done&&t.type==='learn').map(t=>t.courseId));
+  // 今天已经学过一段的科目，优先让位给还没轮到的科目，避免同一天同一科堆两段让人误会
+  const pool=list.filter(x=>!startedToday.has(x.c.id));
+  const learnPool=pool.length?pool:list;
+  for(const it of learnPool){
+    if(placed>=maxCourses)break;
+    const rem=remainMins(it.c);
+    const m=Math.min(segLen,rem,roomForLearn());
+    if(m<15)continue;
+    const verb=startedToday.has(it.c.id)?'继续':'看课';
+    push('learn',`${verb} · ${it.c.name}（今天听 ${Math.round(m)} 分钟）`,m,{courseId:it.c.id});
+    placed++;studied.push(it.c);startedToday.add(it.c.id);
   }
-  p.tasks=kept.concat(finalTasks);
+  // 状态好/空闲日：再给还没排到的科目加一段（同一科继续往下听，不是重复）
+  if(state!=='bad'&&dayType!=='busy'&&roomForLearn()>=segLen){
+    const noToday=(x)=>!startedToday.has(x.c.id)&&remainMins(x.c)>segLen;
+    const it=list.find(x=>!studied.includes(x.c)&&noToday(x))
+      ||list.find(x=>studied.includes(x.c)&&noToday(x))
+      ||list.find(x=>remainMins(x.c)>segLen);
+    if(it){push('learn',`加练 · ${it.c.name}（再听 ${segLen} 分钟）`,segLen,{courseId:it.c.id});studied.push(it.c);}
+  }
+
+  // ⑤ 欠题：已经学过但题没跟上，用小块时间补，绝不在没学时先刷
+  const debts=list.filter(x=>quizDebt(x.c)>0).sort((a,b)=>quizDebt(b.c)-quizDebt(a.c));
+  if(debts.length&&left()-fixedTotal>=15){
+    const c=debts[0].c,q=Math.min(quizDebt(c),20);
+    push('quiz',`补刷欠题 · ${c.name}（已学部分欠 ${q} 题）`,Math.min(30,Math.round(q*1.5),left()-fixedTotal),{courseId:c.id,questions:q});
+  }
+
+  // ⑥ 固定任务落地
+  fixedPlan.forEach(([title,m])=>{if(left()>=m)push('task',title,m);});
+
+  // ⑦ 还有余量才加巩固（不硬凑）
+  if(left()>=25)push('task','错题回顾 · 重做近 3 天错题并归类错因',25);
+
+  p.tasks=kept.concat(tasks);
   save();
-  const needAll=totalNeed+overdueMin;
-  const availText=`今日预计可学 <b>${mins} 分钟</b>（${start}–${end}${busyMin?`，已扣杂事 ${busyMin} 分钟`:''}），按「${dayType==='busy'?'课多/事多':dayType==='free'?'空闲日':'正常日'} + ${state==='good'?'状态好':state==='bad'?'状态差':'状态正常'}」实际排 <b>${used(finalTasks)} 分钟</b>`;
+
+  const needAll=totalDailyNeed()+overdueMin;
+  const studiedTxt=studied.length?studied.map(c=>{
+    const def=courseDeficit(c,d);
+    const ls=linkSave(c);
+    const why=def>0?`落后 ${fmtH(def)}`:(!weekBefore.has(c.id)?'本周第一次轮到':'按目标日匀速推进');
+    return `${DOMAINS[c.domain].name}《${c.subject}》<span class="mut">（${why}${ls>0?` · 联动省时 ${Math.round(ls*100)}%`:''}）</span>`;
+  }).join('、'):'无（可用时间太少）';
+  const notScheduled=activeCourses().filter(c=>remainMins(c)>0&&!studied.includes(c)).map(c=>c.subject);
+  const skipTxt=notScheduled.length
+    ?`<br><b>今天没排：</b>${notScheduled.slice(0,6).join('、')}${notScheduled.length>6?` 等 ${notScheduled.length} 科`:''}——不是漏了，是平台故意不让一天堆太多科；按紧迫度轮着来，本周内都会轮到。`
+    :'';
+  const logicTxt='<br><span class="mut">怎么选的：谁落后多、谁离截止日近、谁这周还没轮到，就先排谁；联动源科目（CPA 税法/会计/财管/经济法）学一点，能给税务师、资产评估那边省下听课时间，所以适当优先。</span>';
+  const availText=`今天可用 <b>${mins} 分钟</b>（${start}–${end}${busyMin?`，已扣杂事 ${busyMin} 分钟`:''}），按「${dayType==='busy'?'课多/事多':dayType==='free'?'空闲日':'正常日'} + ${state==='good'?'状态好':state==='bad'?'状态差':'状态正常'}」你大概能扛 <b>${budget} 分钟</b>，今天排了 <b>${used(tasks)} 分钟</b>、${tasks.length} 项。<br><b>今天主攻：</b>${studiedTxt}。${skipTxt}${logicTxt}`;
   document.getElementById('gapWarn').innerHTML=needAll>budget
-    ?`<div class="note bad">⚠ ${availText}。但按目标日倒排，今日理论需求约 <b>${needAll} 分钟</b>（各科日均需求 ${totalNeed} + 遗留 ${overdueMin}），时间不够。已按目标日远近取舍；请到「长线规划」查看告急科目，或把「预计学到」延后。</div>`
-    :`<div class="note">${availText}。今日理论需求约 ${needAll} 分钟，装得下，按部就班即可。${overdueMin>0?`<b>含昨日遗留 ${overdueMin} 分钟，已置顶，先补旧的再学新的。</b>`:''}</div>`;
+    ?`<div class="note bad">⚠ ${availText}<br>⚠ 但按目标日倒排，所有科目加起来日均还差约 <b>${needAll-budget} 分钟</b>。别慌，也不建议硬加时长：把「预计学到」往后挪一点、或把最不着急那科的目标日放宽，比熬夜硬撑有效。</div>`
+    :`<div class="note">${availText}${overdueMin>0?`<br><b>含昨天遗留 ${overdueMin} 分钟，已放最前面，先清旧的再学新的。</b>`:''}</div>`;
   renderToday();
-  toast(overdueMin>0?'已生成，昨日遗留任务已置顶':'今日计划已生成并排定钟点');
+  toast(overdueMin>0?'已生成，昨天的遗留已放到最前面':'今日计划已生成，看看今天怎么打');
 }
 function used(tasks){return tasks.reduce((s,t)=>s+(t.done?0:t.minutes),0);}
 function planTotal(p){return p.tasks.reduce((s,t)=>s+t.minutes,0);}
@@ -576,32 +760,22 @@ function applyDisruption(){
   const d=effToday();const p=planOf(d);
   p.disruptions.push({name,s,e});
   p.mins=Math.max(0,(p.mins||0)-(t2m(e)-t2m(s))); // 可用时间同步扣减
-  const now=new Date();const nowT=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const mins=t2m(e)-t2m(s);
-  let msgs=[`已记录「${name} ${s}–${e}」，今日时间轴已绕开该时段。`];
-  if(nowT<e){
-    let cut=Math.round(mins*0.8);
-    const remain=p.tasks.filter(t=>!t.done),after=[],spill=[];
-    for(const t of remain){
-      if(cut<=0){after.push(t);continue;}
-      if(t.minutes<=cut){cut-=t.minutes;spill.push(t);}
-      else{t.minutes-=cut;cut=0;after.push(t);}
-    }
-    p.tasks=p.tasks.filter(t=>t.done).concat(after);
-    if(spill.length){
-      for(let i=0;i<spill.length;i++){
-        const off=i%3+1;const nd=new Date();nd.setDate(nd.getDate()+off);
-        const ds=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');
-        const np=planOf(ds);
-        if(used(np.tasks)+spill[i].minutes<=DB.settings.cap)np.tasks.push({...spill[i],id:uid(),title:'补 · '+spill[i].title});
-        else msgs.push(`⚠ ${fmtDate(ds)} 已达每日上限，「${spill[i].title}」请手动安排。`);
-      }
-      msgs.push(`${spill.length} 项受影响任务已摊到未来 3 天，整体进度基本持平。`);
-    }
-  }else msgs.push('该时段已过去，今日计划无需变动。');
-  save();renderToday();
+  save();
+  // 不做「删前面的任务」这种事：整日按新的可用时间重新排一遍。
+  // 已完成的任务原样保留；被挤掉的内容不会丢，后续几天会按落后程度自动补上。
+  const hadTasks=p.tasks.length;
+  let msgs=[`已记录「${name} ${s}–${e}」，今日重新排过。`];
+  if(hadTasks){
+    try{document.getElementById('genStart').value=p.start||'18:30';
+        document.getElementById('genEnd').value=p.end||'22:30';}catch(err){}
+    generateDay();
+    const np=planOf(d);
+    msgs.push(`今日剩余可学约 <b>${np.mins} 分钟</b>，已按承受量重排为 ${np.tasks.length} 项（已完成的不动）。`);
+    msgs.push(`被挤下去的课不会丢，也不会堆到某一天爆发——后面几天会按「谁落后补谁」自动接上，整体进度基本持平。`);
+  }else msgs.push('今日还没生成计划，直接点「生成」即可按扣掉杂事后的时间排。');
+  renderToday();
   document.getElementById('disResult').innerHTML=msgs.join('<br>');
-  renderDisList(d);toast('已动态重排，时间轴已更新');
+  renderDisList(d);toast('已按新的可用时间重排（未删任务）');
 }
 function renderDisList(d){
   const p=planOf(d);
@@ -609,6 +783,105 @@ function renderDisList(d){
 }
 
 /* ==================== 今日页渲染 ==================== */
+function quickGen(cap){
+  const d=effToday(),p=planOf(d);
+  p.forceCap=cap||null;
+  save();generateDay();
+  toast(cap?`已按「今天只有 ${cap} 分钟」重排，只留最要紧的`:'已恢复正常安排');
+}
+// 保姆卡：每天开门第一眼就知道「现在干什么、不想动时最低做多少」
+function renderCare(d){
+  const box=document.getElementById('careBox');if(!box)return;
+  const p=planOf(d),tasks=p.tasks;
+  if(!tasks.length){box.innerHTML='';return;}
+  const todo=tasks.filter(t=>!t.done);
+  const total=planTotal(p),doneMin=tasks.filter(t=>t.done).reduce((s,t)=>s+t.minutes,0);
+  const remainMin=Math.max(0,total-doneMin);
+  const learn=todo.filter(t=>t.type==='learn'),quiz=todo.filter(t=>t.type==='quiz');
+  const first=todo[0];
+  const minSet=[];
+  if(learn[0])minSet.push('打开 '+learn[0].title.replace(/^(看课|继续|加练) · /,'').split('（')[0]+'，先听 15–20 分钟');
+  if(quiz[0])minSet.push('把 '+quiz[0].title.replace(/^(补刷欠题|趁热刷题) · /,'').split('（')[0]+' 的题做掉一半');
+  if(!minSet.length)minSet.push('背 1 组六级单词，10 分钟');
+  // 今天的联动收益
+  const links=[];
+  tasks.forEach(t=>{
+    if(!t.courseId)return;const c=courseById(t.courseId);if(!c)return;
+    const ls=linkSave(c);
+    if(ls>0)links.push(`${c.subject} 少听 ${Math.round(ls*100)}%`);
+  });
+  const linkNote=links.length?`<div class="note" style="margin-top:8px;padding:8px 11px">🔗 <b>今天顺带的联动收益：</b>${[...new Set(links)].join('、')}——这些课的重叠内容直接刷题，不用再听一遍，时间就是这么省出来的。</div>`:'';
+  const cs=activeCourses();
+  const sel=p.focus||[];
+  const focusLine=cs.length?`<details style="margin-top:8px"><summary class="mut" style="cursor:pointer;font-size:.8rem">今天学哪科是平台选的（点开可临时指定，平时不用管）</summary>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">`+
+    cs.map(c=>{const on=sel.includes(c.id);
+      return `<button class="btn ${on?'btn-primary':'btn-ghost'} btn-sm" onclick="toggleFocus('${c.id}')">${on?'✓ ':''}${c.name}</button>`;}).join('')+
+    `${sel.length?`<button class="btn btn-ghost btn-sm" onclick="clearFocus()">改回平台自动</button>`:''}</div>
+    <div class="mut" style="margin-top:5px;font-size:.76rem">平台每天按「落后多少 + 离截止多近 + 本周是否轮到」选 1–2 科，其余科往后轮，不会漏。</div></details>`:'';
+  box.innerHTML=`<div class="card" style="border-left:4px solid var(--main)">
+    <h3>🤝 今天怎么打 <span class="tag tag-blue">照这个来就行</span></h3>
+    <div style="font-size:.88rem;line-height:1.95">
+      <div><b>现在就从这件事开始：</b>${first?first.title:'今天的都完成了，去休息，别硬加'}</div>
+      <div><b>今天总量：</b>${tasks.length} 项 · ${total} 分钟${doneMin?`（已完成 ${doneMin} 分钟，还剩 ${remainMin} 分钟）`:''}</div>
+      <div><b>顺序：</b>先看课（脑子清醒听新的）→ 学完立刻做刚学那段的题 → 最后背单词 / 翻错题。别边听边刷，也别先刷后听。</div>
+      <div><b>实在不想动：</b>${minSet.slice(0,2).join('；')}。做了就算今天没白过，比硬撑到放弃强。</div>
+    </div>
+    ${linkNote}${focusLine}
+  </div>`;
+}
+function clearFocus(){
+  const d=effToday(),p=planOf(d);p.focus=[];save();
+  if(p.tasks.length)generateDay();else renderToday();
+  toast('已改回平台自动选科');
+}
+// 未来 7 天模拟：平台按紧迫度+周内轮转自动选科，让你看到「不用自己排」的样子
+function previewWeek(){
+  const box=document.getElementById('weekPreview');if(!box)return;
+  const base=Math.max(30,+DB.settings.base||180),perDay=Math.max(1,+DB.settings.perDay||2);
+  const st=DB.courses.map(c=>({c,remain:remainMins(c),eff:effTotal(c),done:doneMins(c)}));
+  if(!st.length||!st.some(x=>x.remain>0)){box.innerHTML='<div class="empty">建档后这里显示未来 7 天平台自动排的科目</div>';return;}
+  const rows=[],weekMap=new Set();
+  for(let i=0;i<7;i++){
+    const dt=new Date();dt.setDate(dt.getDate()+i);const ds=fmtD(dt);
+    const ex=DB.plans[ds];
+    const budget=ex&&ex.tasks&&ex.tasks.length?Math.round((ex.mins||base)*0.85):Math.round(base*0.85);
+    let left=budget;const picked=[];
+    for(let n=0;n<perDay;n++){
+      const cand=st.filter(x=>x.remain>0).map(x=>{
+        const ss=new Date((x.c.createdAt||startDate())+'T00:00:00');
+        let t=new Date(x.c.targetDate+'T00:00:00');if(t<=ss)t=new Date(ss.getTime()+864e5);
+        const span=Math.max(1,(t-ss)/864e5),el=Math.max(0,(dt-ss)/864e5);
+        const def=Math.round(x.eff*Math.min(1,el/span)-x.done);
+        const dl=Math.max(1,Math.ceil((t-dt)/864e5));
+        let sc=def/dl+x.remain/dl*0.6;
+        if(!weekMap.has(x.c.id))sc*=1.35;
+        if(picked.some(p=>p.cid===x.c.id))sc=-1e9;
+        return {x,sc};
+      }).sort((a,b)=>b.sc-a.sc);
+      const top=cand[0];if(!top||top.sc<=-1e8||left<15)break;
+      const m=Math.min(45,top.x.remain,left);
+      picked.push({cid:top.x.c.id,name:top.x.c.name,m});
+      top.x.remain-=m;top.x.done+=m;left-=m;weekMap.add(top.x.c.id);
+    }
+    rows.push({ds,picked});
+  }
+  box.innerHTML=rows.map(r=>`<div class="flex" style="padding:7px 0;border-bottom:1px dashed var(--line);align-items:flex-start">
+    <b style="font-size:.84rem;min-width:66px">${r.ds.slice(5)}${r.ds===effToday()?' 今天':''}</b>
+    <span style="flex:1;font-size:.83rem">${r.picked.length?r.picked.map(p=>`${p.name} ${p.m}′`).join('　'):'留空 / 只做保底'}</span>
+  </div>`).join('')+`<div class="mut" style="margin-top:6px">这是「按部就班」的基准排法：只排量最紧的 1–2 科，每科一段；落后多的先补、本周没轮到的优先。它只是让你心里有数，不用你照着排。</div>`;
+}
+function toggleFocus(id){
+  const d=effToday(),p=planOf(d);p.focus=p.focus||[];
+  const max=Math.max(1,+DB.settings.perDay||2);
+  if(p.focus.includes(id))p.focus=p.focus.filter(x=>x!==id);
+  else{
+    if(p.focus.length>=max){toast(`每天最多主攻 ${max} 科，先取消一个再选（可到设置页调上限）`);return;}
+    p.focus.push(id);
+  }
+  save();renderCare(d);
+  if(p.tasks.length)generateDay();else renderToday();
+}
 function renderToday(){
   const d=effToday();const p=planOf(d);
   document.getElementById('genDate').value=d;
@@ -617,6 +890,8 @@ function renderToday(){
   document.getElementById('genStart').value=p.start||'18:30';
   document.getElementById('genEnd').value=p.end||'22:30';
   renderDisList(d);
+  renderCare(d);
+  previewWeek();
   const done=p.tasks.filter(t=>t.done).reduce((s,t)=>s+t.minutes,0),all=planTotal(p);
   const sm=document.getElementById('todaySummary');
   sm.className='tag '+(p.tasks.length&&done>=all?'tag-green':'tag-blue');
@@ -637,61 +912,111 @@ function renderToday(){
           ${(t.defer||0)>0?`<span class="tag tag-red">已顺延 ${t.defer} 次</span>`:''}
         </div>
         ${t.guide?`<div class="t-guide">${t.guide}</div>`:''}
+        ${t.done?'':`<div class="t-tools">
+          ${canDefer?`<button class="btn btn-ghost btn-sm" onclick="bumpTask('${d}','${t.id}')">顺延到明天</button>`
+            :`<button class="btn btn-danger btn-sm" disabled title="已顺延 2 次，今天必须做">不许再拖</button>`}
+          <button class="btn btn-ghost btn-sm" onclick="moveTask('${d}','${t.id}')">改日期</button>
+          <button class="btn btn-ghost btn-sm" onclick="editTaskMin('${d}','${t.id}')">改时长</button>
+          <button class="btn btn-ghost btn-sm" onclick="delTask('${d}','${t.id}')">删除</button>
+        </div>`}
       </div>
-      ${t.done?'':(canDefer?`<button class="btn btn-ghost btn-sm" onclick="bumpTask('${d}','${t.id}')">顺延到明天</button>`
-        :`<button class="btn btn-danger btn-sm" disabled title="已顺延 2 次，今天必须做">不许再拖</button>`)}
     </div>`;}).join('');
   renderTimeline(d);
 }
+function removeLog(date,courseId,kind,minutes){
+  for(let i=DB.log.length-1;i>=0;i--){
+    const x=DB.log[i];
+    if(x.date===date&&x.courseId===courseId&&x.kind===kind&&Math.abs(x.minutes-minutes)<0.5){DB.log.splice(i,1);return;}
+  }
+}
 function toggleTask(d,tid){
   const p=planOf(d);const t=p.tasks.find(x=>x.id===tid);if(!t)return;
-  t.done=t.done?0:1;
-  if(t.done){
+  // 看课任务：先问「实际学了多久」，记完真实时长才排这一段对应的刷题
+  if(!t.done&&t.type==='learn'&&t.courseId){openSegModal({d,tid});return;}
+  if(!t.done){
+    t.done=1;t.actual=t.minutes;
     let dm='other';
     if(t.courseId){const c=courseById(t.courseId);if(c)dm=c.domain;}
     else if(/英语/.test(t.title))dm='en';else if(/SPSS|Stata|论文/.test(t.title))dm='paper';else if(/考公/.test(t.title))dm='gw';
     addLog(d,dm,t.minutes,t.type==='quiz'?'quiz':t.type==='learn'?'learn':'task',t.courseId);
-    if(t.courseId){const c=courseById(t.courseId);
-      if(t.type==='learn'&&t.lessonId){
-        const l=c.lessons.find(x=>x.id===t.lessonId);
-        if(l){l.learned=1;
-          if(l.quiz>0&&!p.tasks.some(x=>x.quizOf===l.id)){
-            const nt={id:uid(),type:'quiz',title:`课后即刷 · ${l.name}（${l.quiz}题）`,minutes:Math.round(l.quiz*1.2),courseId:c.id,lessonId:l.id,quizOf:l.id,done:0,defer:0};
-            nt.guide=guideFor(nt);p.tasks.push(nt);toast('已解锁对应刷题任务');
-          }
-          // 联动：CPA 单元学完 → 关联科目下一个单元标记"可省力"，但整门课仍须完整学完
-          const linkedKeys=LINKS[(c.domain+'|'+c.subject)]||[];
-          let linkCount=0;
-          linkedKeys.forEach(k=>{
-            const lc=DB.courses.find(x=>(x.domain+'|'+x.subject)===k);
-            if(!lc)return;
-            const lu=lc.lessons.find(x=>!x.learned&&!x.quizUnlocked);
-            if(!lu)return;
-            lu.quizUnlocked=true;linkCount++;
-            const nt={id:uid(),type:'quiz',title:`联动刷题 · ${lc.name}（对应刚学内容，${lu.quiz}题）`,minutes:Math.round(lu.quiz*1.2),courseId:lc.id,lessonId:lu.id,quizOf:lu.id,done:0,defer:0};
-            nt.guide=`<b>怎么干：</b>这部分与 CPA《${c.subject}》刚学的内容重叠（公开考纲可对照），先直接刷题检测；<b>错题和没掌握的知识点，回正保课程「${lu.name}」完整补看</b>——这门课所有单元都要学完，联动只是省力，不是跳过。`;
-            p.tasks.push(nt);
-          });
-          if(linkCount)setTimeout(()=>toast(`🔗 已联动：${linkCount} 个关联科目对应内容可省力刷题（整门课仍要完整学完）`),500);
-        }
-      }
-      if(t.type==='quiz'){
-        if(t.quizOf){const l=c.lessons.find(x=>x.id===t.quizOf);if(l)l.quizDone=l.quiz;}
-        else{let need=Math.round(t.minutes/1.2);
-          for(const l of c.lessons){if(!l.learned&&!l.quizUnlocked)continue;const gap=(l.quiz||0)-(l.quizDone||0);if(gap<=0)continue;const use=Math.min(gap,need);l.quizDone+=use;need-=use;if(need<=0)break;}}}
+    if(t.courseId&&t.type==='quiz'){
+      const c=courseById(t.courseId);
+      if(c)c.quizDone=(c.quizDone||0)+(t.questions||Math.round(t.minutes/1.4));
     }
-  }else{
-    // 取消勾选＝误点回滚：课程进度退回，自动生成的配套刷题（未做的）一并撤下，防止内容被误跳过
-    if(t.courseId){const c=courseById(t.courseId);
-      if(c&&t.type==='learn'&&t.lessonId){
-        const l=c.lessons.find(x=>x.id===t.lessonId);if(l)l.learned=0;
-        p.tasks=p.tasks.filter(x=>!(x.quizOf===t.lessonId&&!x.done));
-      }
-      if(c&&t.type==='quiz'&&t.quizOf){const l=c.lessons.find(x=>x.id===t.quizOf);if(l)l.quizDone=0;}
+    save();renderToday();
+    return;
+  }
+  // 取消勾选 = 误点回滚：进度、统计、自动生成的配套刷题一起退回
+  t.done=0;
+  if(t.courseId){
+    const c=courseById(t.courseId);
+    if(c&&t.type==='learn'){
+      c.doneMins=Math.max(0,(c.doneMins||0)-(t.actual||t.minutes));
+      removeLog(d,c.id,'learn',t.actual||t.minutes);
+      p.tasks=p.tasks.filter(x=>!(x.autoFor===tid&&!x.done));
+    }
+    if(c&&t.type==='quiz'){
+      c.quizDone=Math.max(0,(c.quizDone||0)-(t.questions||Math.round(t.minutes/1.4)));
+      removeLog(d,c.id,'quiz',t.minutes);
     }
   }
   save();renderToday();
 }
+/* ===== 记录一次学习（这是全平台最核心的一个动作） ===== */
+let segCtx=null;
+function openSegModal(ctx){
+  const c=courseById(ctx.cid||(planOf(ctx.d).tasks.find(x=>x.id===ctx.tid)||{}).courseId);
+  if(!c){toast('找不到这门课');return;}
+  segCtx={...ctx,cid:c.id};
+  const planned=ctx.tid?((planOf(ctx.d).tasks.find(x=>x.id===ctx.tid)||{}).minutes||45):45;
+  document.getElementById('segTitle').textContent='这次学了多久？';
+  document.getElementById('segCourse').textContent=c.name+' · 剩余 '+fmtH(remainMins(c));
+  document.getElementById('segHint').innerHTML=ctx.tid
+    ? `计划学 ${planned} 分钟。<b>没学够也如实填</b>——平台按真实时间算进度，学一半就记一半，不丢人也不算白学。`
+    : `今天临时多学了一段？记下来，平台会把这段对应的刷题排上。`;
+  document.getElementById('segMins').value=planned;
+  document.getElementById('segChips').innerHTML=[15,25,30,45,60,90].map(v=>`<button class="btn btn-ghost btn-sm" onclick="setSegMins(${v})">${v} 分钟</button>`).join('');
+  document.getElementById('segModal').classList.add('show');
+}
+function setSegMins(v){document.getElementById('segMins').value=v;}
+function closeSeg(){document.getElementById('segModal').classList.remove('show');segCtx=null;}
+function confirmSeg(){
+  if(!segCtx)return;
+  const ctx=segCtx;
+  const actual=Math.max(1,Math.round(+document.getElementById('segMins').value||0));
+  const c=courseById(ctx.cid);
+  if(!c)return closeSeg();
+  const d=ctx.d||effToday(),p=planOf(d);
+  let t=null;
+  if(ctx.tid){
+    t=p.tasks.find(x=>x.id===ctx.tid);
+    if(!t)return closeSeg();
+  }
+  // 1) 记录真实学习时长（这是唯一进度来源）
+  c.doneMins=(c.doneMins||0)+actual;
+  addLog(d,c.domain,actual,'learn',c.id);
+  if(t){t.done=1;t.actual=actual;t.minutes=actual;}
+  // 2) 学完这一段，才生成这一段对应的刷题
+  const q=Math.max(3,Math.round(actual/60*(c.qph||20)));
+  if(!p.tasks.some(x=>x.autoFor===(ctx.tid||('adhoc'+Date.now()))&&!x.done)){
+    const nt={id:uid(),type:'quiz',title:`趁热刷题 · ${c.name}（刚学的 ${actual} 分钟，约 ${q} 题）`,
+      minutes:Math.ceil(q*1.4),questions:q,courseId:c.id,done:0,defer:0,autoFor:ctx.tid||null};
+    nt.guide=guideFor(nt);p.tasks.push(nt);
+  }
+  closeSeg();save();renderToday();
+  const pc=document.getElementById('page-courses');
+  if(pc&&pc.classList.contains('show'))renderCourses();
+  toast(`已记 ${actual} 分钟 · 这一段对应的 ${q} 道题已排上`);
+  // 3) 联动提示（学的是联动源科目时，告诉用户给别人省了多少）
+  const saves=[];
+  Object.keys(LINK_SAVE).forEach(k=>{
+    if(!LINK_SAVE[k].some(x=>x[0]===(c.domain+'|'+c.subject)))return;
+    const tc=DB.courses.find(x=>(x.domain+'|'+x.subject)===k);
+    if(tc&&linkSave(tc)>0)saves.push(`${tc.subject} 省 ${Math.round(linkSave(tc)*100)}%`);
+  });
+  if(saves.length)setTimeout(()=>toast('🔗 联动：'+saves.slice(0,3).join('、')+' 的听课时间'),1600);
+}
+function recordStudy(cid){openSegModal({d:effToday(),cid});}
 function bumpTask(d,tid){
   const p=planOf(d);const i=p.tasks.findIndex(x=>x.id===tid);if(i<0)return;
   const t=p.tasks[i];
@@ -707,8 +1032,38 @@ function bumpTask(d,tid){
 }
 function addCustomTask(){
   const v=document.getElementById('customTask').value.trim();if(!v)return;
-  planOf(effToday()).tasks.push({id:uid(),type:'task',title:v,minutes:30,done:0,defer:0});
-  document.getElementById('customTask').value='';save();renderToday();
+  planOf(effToday()).tasks.push({id:uid(),type:'task',title:v,minutes:30,done:0,defer:0,manual:true});
+  document.getElementById('customTask').value='';save();renderToday();toast('已添加（重新生成也会保留）');
+}
+function delTask(d,tid){
+  const p=planOf(d);const t=p.tasks.find(x=>x.id===tid);if(!t)return;
+  if(t.done){toast('已完成的任务请先取消勾选，再删除');return;}
+  p.tasks=p.tasks.filter(x=>x.id!==tid);save();renderToday();toast('已删除该任务（课程进度不受影响）');
+}
+function moveTask(d,tid){
+  const p=planOf(d);const t=p.tasks.find(x=>x.id===tid);if(!t||t.done)return;
+  const v=prompt('把这项任务移到哪一天？（格式 2026-11-15）',nextDayStr(d));
+  if(v===null)return;
+  const ds=v.trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)){toast('日期格式应为 2026-11-15');return;}
+  p.tasks=p.tasks.filter(x=>x.id!==tid);
+  planOf(ds).tasks.push({...t,id:uid(),defer:(t.defer||0)+1,title:t.title.startsWith('补 ·')?t.title:'补 · '+t.title});
+  save();renderToday();toast(`已移到 ${ds}，那天会置顶显示`);
+}
+function editTaskMin(d,tid){
+  const p=planOf(d);const t=p.tasks.find(x=>x.id===tid);if(!t||t.done)return;
+  const v=+prompt('这项预计多少分钟？',t.minutes);
+  if(!v||v<=0)return;
+  t.minutes=Math.round(v);save();renderToday();toast('已修改时长，时间轴同步更新');
+}
+function clearDay(){
+  const d=effToday();const p=planOf(d);
+  const undone=p.tasks.filter(t=>!t.done);
+  if(!undone.length){toast('今日没有未完成的任务');return;}
+  if(!confirm(`清空今日 ${undone.length} 项未完成任务？\n课程进度不受影响，重新生成会按最新进度重排。`))return;
+  p.tasks=p.tasks.filter(t=>t.done);save();renderToday();
+  document.getElementById('gapWarn').innerHTML='<div class="note">已清空未完成任务。点上方「生成 / 重新生成」会按当前进度与承受量重新排。</div>';
+  toast('已清空未完成任务');
 }
 function submitReview(){
   const d=effToday();const p=planOf(d);
@@ -731,84 +1086,110 @@ document.addEventListener('change',e=>{if(e.target.id==='ncSubject'){const o=e.t
 function addStageRow(stage,hours){
   const row=document.createElement('div');row.className='stage-row';
   row.innerHTML=`<select>${STAGES.map(s=>`<option ${s===stage?'selected':''}>${s}</option>`).join('')}</select>
-  <input type="number" min="0" step="0.5" placeholder="该班型总时长（小时）" value="${hours||''}">
-  <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  <input type="number" min="0" step="0.5" placeholder="总共多少小时（可只填一行）" value="${hours||''}" oninput="updateNcPreview()">
+  <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove();updateNcPreview()">✕</button>`;
   document.getElementById('stageRows').appendChild(row);
+  updateNcPreview();
+}
+function ncHours(){
+  return [...document.querySelectorAll('#stageRows .stage-row')]
+    .reduce((s,r)=>s+(+r.querySelector('input').value||0),0);
+}
+// 建档实时预判：填小时就能看到「每天要学多久、来不来得及」
+function updateNcPreview(){
+  const box=document.getElementById('ncPreview');if(!box)return;
+  const h=ncHours(),target=document.getElementById('ncTarget').value;
+  if(!h){box.innerHTML='<span class="mut">填了总时长，这里会立刻算出每天要学多久、来不来得及。</span>';return;}
+  if(!target){box.innerHTML=`共 <b>${h}</b> 小时 · 填个目标日就能算进度`;return;}
+  const d=daysTo(target),per=Math.ceil(h*60/d);
+  const cls=per<=90?'tag-green':per<=180?'tag-orange':'tag-red';
+  box.innerHTML=`共 <b>${h}</b> 小时，到 ${target} 还有 <b>${d}</b> 天 → 平均每天听 <b>${per}</b> 分钟
+    <span class="tag ${cls}">${per<=90?'轻松':per<=180?'偏紧':'很赶，建议放宽目标日'}</span>
+    <div class="mut" style="margin-top:4px">建好后平台按这个节奏自动排，你只需每次学完点一下「记一次学习」。</div>`;
 }
 function createCourseQuick(){
   const dm=document.getElementById('ncDomain').value;
   const subj=document.getElementById('ncSubject').value;
   const src=document.getElementById('ncSource').value.trim();
-  const unit=Math.max(15,+document.getElementById('ncUnit').value||45);
-  const quiz=+document.getElementById('ncQuiz').value||0;
   const target=document.getElementById('ncTarget').value;
-  if(!target){toast('请填写目标完成日');return;}
+  if(!target){toast('请填一下目标完成日');return;}
   const rows=[...document.querySelectorAll('#stageRows .stage-row')];
   const stages=rows.map(r=>({stage:r.querySelector('select').value,hours:+r.querySelector('input').value||0})).filter(s=>s.hours>0);
-  if(!stages.length){toast('请至少填一个班型的总时长（小时）');return;}
-  if(DB.courses.some(c=>c.domain===dm&&c.subject===subj)){toast('该科目已建档，直接在课程库里微调即可');return;}
-  const lessons=[];
-  stages.forEach(st=>{
-    const totalMin=Math.round(st.hours*60);
-    const n=Math.max(1,Math.round(totalMin/unit));
-    for(let i=1;i<=n;i++){
-      const mins=i<n?unit:Math.max(10,totalMin-unit*(n-1));
-      lessons.push({id:uid(),name:`${st.stage}·第 ${i} 单元`,mins,quiz,learned:0,quizDone:0});
-    }
-  });
-  DB.courses.push({id:uid(),domain:dm,subject:subj,name:`${subj}${src?' · '+src:''}`,targetDate:target,stages,unit,lessons});
-  save();renderCourses();
-  toast(`已建档：${lessons.length} 个单元 · 距目标日每天需 ${dailyNeed(DB.courses[DB.courses.length-1])} 分钟`);
+  if(!stages.length){toast('只要告诉我这门课总共多少小时就行（如 80）');return;}
+  if(DB.courses.some(c=>c.domain===dm&&c.subject===subj)){toast('这门科已经建过了，去下面课程库直接改就行');return;}
+  const totalMin=Math.round(stages.reduce((s,x)=>s+x.hours,0)*60);
+  DB.courses.push({id:uid(),domain:dm,subject:subj,name:`${subj}${src?' · '+src:''}`,targetDate:target,
+    stages,totalMins:totalMin,doneMins:0,quizDone:0,qph:20,createdAt:todayStr()});
+  save();renderCourses();updateNcPreview();
+  document.getElementById('ncSource').value='';
+  const per=Math.ceil(totalMin/daysTo(target));
+  toast(`建好了：共 ${Math.round(totalMin/60)} 小时，到目标日每天约 ${per} 分钟`);
 }
-let curCourse=null;
-function openLessonModal(cid){curCourse=cid;const c=courseById(cid);
-  document.getElementById('lmTitle').textContent='微调课时 · '+c.name;
-  document.getElementById('lmName').value='';document.getElementById('lmMins').value='';document.getElementById('lmBulk').value='';
-  document.getElementById('lessonModal').classList.add('show');}
-function closeModal(){document.getElementById('lessonModal').classList.remove('show');}
-function saveLessons(){
-  const c=courseById(curCourse);if(!c)return closeModal();
-  const n=document.getElementById('lmName').value.trim(),m=+document.getElementById('lmMins').value,q=+document.getElementById('lmQuiz').value||0;
-  if(n&&m>0)c.lessons.push({id:uid(),name:n,mins:m,quiz,learned:0,quizDone:0});
-  const bulk=document.getElementById('lmBulk').value.trim();
-  if(bulk)bulk.split('\n').forEach(line=>{const[a,b]=line.split(/[,，]/).map(s=>s&&s.trim());const idx=+a-1;
-    if(idx>=0&&idx<c.lessons.length&&+b>0)c.lessons[idx].mins=+b;});
-  save();closeModal();renderCourses();toast('课时已更新');
+let cmCourse=null;
+function openCourseEdit(cid){
+  const c=courseById(cid);if(!c)return;
+  cmCourse=cid;
+  document.getElementById('cmTitle').textContent='调整 · '+c.subject;
+  document.getElementById('cmName').value=c.name;
+  document.getElementById('cmTotal').value=Math.round(totalMins(c)/6)/10;
+  document.getElementById('cmTarget').value=c.targetDate;
+  document.getElementById('cmQph').value=c.qph||20;
+  document.getElementById('courseModal').classList.add('show');
+}
+function closeCourseModal(){document.getElementById('courseModal').classList.remove('show');cmCourse=null;}
+function saveCourseEdit(){
+  const c=courseById(cmCourse);if(!c)return closeCourseModal();
+  const nm=document.getElementById('cmName').value.trim();
+  const h=+document.getElementById('cmTotal').value;
+  const t=document.getElementById('cmTarget').value;
+  const q=+document.getElementById('cmQph').value;
+  if(nm)c.name=nm;
+  if(h>0)c.totalMins=Math.round(h*60);
+  if(t)c.targetDate=t;
+  c.qph=q>0?Math.round(q):20;
+  save();closeCourseModal();renderCourses();toast('已保存，排期会按新参数自动调整');
 }
 function delCourse(cid){if(!confirm('确定删除该课程及其全部进度记录？'))return;DB.courses=DB.courses.filter(c=>c.id!==cid);save();renderCourses();}
-function delLesson(cid,lid){const c=courseById(cid);c.lessons=c.lessons.filter(l=>l.id!==lid);save();renderCourses();}
-function renameLessons(cid){const c=courseById(cid);
-  const v=prompt('批量命名：每行一个名称（按机构目录粘贴），数量不足则保持原名',c.lessons.map(l=>l.name).join('\n'));
-  if(v===null)return;v.split('\n').forEach((s,i)=>{if(s.trim()&&c.lessons[i])c.lessons[i].name=s.trim();});
-  save();renderCourses();toast('已按目录命名');
-}
 function renderCourses(){
   document.getElementById('courseCount').textContent=DB.courses.length+' 门';
   const el=document.getElementById('courseList');
-  if(!DB.courses.length){el.innerHTML=`<div class="empty"><span class="big">📚</span>还没有课程。建议先建：CPA 会计、税法（填各班型总时长）和粉笔 980 的行测·资料分析。</div>`;return;}
+  if(!DB.courses.length){el.innerHTML=`<div class="empty"><span class="big">📚</span>还没有课程。建议先建：CPA 会计、CPA 税法、粉笔 980 的行测·资料分析——每门只要填一个总小时数。</div>`;return;}
   el.innerHTML=DB.courses.map(c=>{
-    const total=c.lessons.reduce((s,l)=>s+l.mins,0),done=c.lessons.filter(l=>l.learned).reduce((s,l)=>s+l.mins,0);
-    const qt=c.lessons.reduce((s,l)=>s+(l.quiz||0),0),qd=c.lessons.reduce((s,l)=>s+(l.quizDone||0),0);
-    const need=dailyNeed(c),dl=daysTo(c.targetDate);
+    const tot=totalMins(c),done=doneMins(c),pct=progressPct(c);
+    const need=dailyNeed(c),dl=daysTo(c.targetDate),ls=linkSave(c);
+    const shouldQ=Math.round(done/60*(c.qph||20));
+    // 这门课能从哪些科目身上省时间（或正在给别人省时间）
+    const srcs=(LINK_SAVE[c.domain+'|'+c.subject]||[]).map(k=>{
+      const s=DB.courses.find(x=>(x.domain+'|'+x.subject)===k[0]);
+      return s?`${s.subject} 已学 ${Math.round(Math.min(1,doneMins(s)/Math.max(1,totalMins(s)))*100)}%`:'';
+    }).filter(Boolean);
+    const tgt=Object.keys(LINK_SAVE).filter(k=>LINK_SAVE[k].some(x=>x[0]===(c.domain+'|'+c.subject)));
+    const linkLine=ls>0
+      ? `<div class="note" style="margin:8px 0 0;padding:7px 11px">🔗 <b>联动省时 ${Math.round(ls*100)}%</b>：${srcs.join('、')} → 剩下这部分里约 ${Math.round(ls*100)}% 内容<b>不用重听</b>，直接刷题即可；已学记录照常算数。<b>还需听 ${fmtH(remainMins(c))}</b>（原需 ${fmtH(Math.max(0,totalMins(c)-doneMins(c)))}，省下 ${fmtH(Math.max(0,totalMins(c)-doneMins(c)-remainMins(c)))}）。</div>`
+      : (tgt.length?`<div class="mut" style="margin-top:6px">🔗 你学完这一科后，${tgt.map(k=>k.split('|')[1]).join('、')} 会自动少听相应部分。</div>`:'');
     return `<div style="border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden">
       <div class="course-head" style="padding:12px 14px;background:#f8fafd">
         <span class="tag" style="background:${DOMAINS[c.domain].color}18;color:${DOMAINS[c.domain].color}">${DOMAINS[c.domain].name}</span>
         <span class="nm">${c.name}</span>
-        <span class="tag tag-gray">🎯 学完截止 ${c.targetDate}（剩 ${dl} 天 · 日均需 ${need} 分钟）</span>
-        <span class="tag tag-gray" title="学完截止日到考试日之间是刷题/二轮期">⏱ ${EXAM_NOTE[c.domain]||''}</span>
-        <span class="right mut">${fmtH(done)}/${fmtH(total)} · 题 ${qd}/${qt}</span>
-        <button class="btn btn-ghost btn-sm" onclick="openLessonModal('${c.id}')">✏️微调</button>
-        <button class="btn btn-ghost btn-sm" onclick="renameLessons('${c.id}')">📑按目录命名</button>
+        <span class="tag tag-gray">🎯 ${c.targetDate} 学完（剩 ${dl} 天 · 日均 ${need} 分钟）</span>
+        <span class="right mut">已学 ${fmtH(done)} / ${fmtH(tot)} · 题 ${c.quizDone||0}/${shouldQ}</span>
+        <button class="btn btn-primary btn-sm" onclick="recordStudy('${c.id}')">＋ 记一次学习</button>
+        <button class="btn btn-ghost btn-sm" onclick="openCourseEdit('${c.id}')">✏️ 调整</button>
         <button class="btn btn-danger btn-sm" onclick="delCourse('${c.id}')">删除</button>
       </div>
-      <div class="prog"><i style="width:${total?Math.round(done/total*100):0}%"></i></div>
-      <details><summary style="padding:8px 14px;font-size:.8rem;color:var(--ink2);cursor:pointer">展开 ${c.lessons.length} 个单元明细</summary>
-      ${c.lessons.map(l=>`<div class="lesson">
-        <span class="dot ${l.learned?(l.quizDone>=(l.quiz||0)?'g':'b'):'gr'}"></span>
-        <span class="ln">${l.learned?'✓ ':l.quizUnlocked?'🔗 ':''}${l.name}</span>
-        <span class="lm">${l.mins}min${l.quiz?` · ${l.quizDone}/${l.quiz}题`:''}</span>
-        <button class="btn btn-ghost btn-sm" onclick="delLesson('${c.id}','${l.id}')">✕</button>
-      </div>`).join('')}</details>
+      <div class="prog" style="margin:0 14px"><i style="width:${pct}%"></i></div>
+      <div style="padding:8px 14px 10px;font-size:.8rem" class="mut">进度 <b style="color:var(--main)">${pct}%</b> · 剩余 ${fmtH(remainMins(c))}
+        ${need>180?'<span class="tag tag-red" style="margin-left:6px">日均偏重，建议放宽目标日</span>':''}
+        ${bufferDays(c)!==null?`<span class="tag ${bufferDays(c)>=28?'tag-green':'tag-orange'}" style="margin-left:6px">学完→预估考试 ${bufferDays(c)} 天</span>`:''}
+        ${(()=>{const g=daysSinceLearn(c,effToday());return g>=99?'<span class="tag tag-orange" style="margin-left:6px">还没开始学</span>':`<span class="tag tag-gray" style="margin-left:6px">上次学 ${g} 天前</span>`;})()}
+      </div>
+      ${linkLine}
+      <details><summary style="padding:8px 14px;font-size:.8rem;color:var(--ink2);cursor:pointer">课程配置与统计</summary>
+        <div style="padding:0 14px 12px;font-size:.82rem;line-height:1.9">
+          班型拆分：${(c.stages||[]).map(s=>`${s.stage} ${s.hours}h`).join('　')||'未拆分'}<br>
+          配套题量：每听 1 小时约 ${c.qph||20} 题 → 学过部分应刷约 ${shouldQ} 题，已刷 ${c.quizDone||0} 题（欠 ${quizDebt(c)} 题）
+        </div>
+      </details>
     </div>`;}).join('');
 }
 
@@ -820,7 +1201,7 @@ function renderPlan(){
   const missing=[];['cpa','cta','cav'].forEach(dm=>{SUBJECTS[dm].forEach(s=>{
     if(!DB.courses.some(c=>c.domain===dm&&c.subject===s[0]))missing.push(DOMAINS[dm].name+'《'+s[0]+'》');});});
   const missingHtml=missing.length
-    ?`<div class="note warn" style="margin-top:10px">⚠ 以下科目还没建档，平台排不了它们的进度，三证一次考过需要一门不落：<br><b>${missing.join('、')}</b><br>去「课程与题库」快速建档，每科只需填班型总时长。</div>`
+    ?`<div class="note warn" style="margin-top:10px">⚠ 以下科目还没建档，平台排不了它们的进度，三证一次考过需要一门不落：<br><b>${missing.join('、')}</b><br>去「课程与题库」快速建档，每科只要填一个总时长（小时）。</div>`
     :`<div class="note" style="margin-top:10px">✓ 三证 15 科已全部建档，一门不落。</div>`;
   document.getElementById('needCard').innerHTML=DB.courses.length
     ?`<h3>⏳ 当前总负荷</h3>
@@ -829,7 +1210,7 @@ function renderPlan(){
       <div class="prog" style="margin-top:10px"><i style="width:${Math.min(100,Math.round(base/Math.max(1,need)*100))}%"></i></div>${missingHtml}`
     :`<h3>⏳ 当前总负荷</h3><div class="mut">还没建档。去「课程与题库」录入各科总时长后，这里会告诉你每天至少要学多少分钟才能按期一次通过。</div>${missingHtml}`;
   document.getElementById('roadmap').innerHTML=[
-    ['2026.11.10 – 2027.02','CPA 一轮攻坚 + 考公起步','以 2026 年东奥基础班为主，按单元逐节推进，看一节刷一节，2027.03 东奥新直播课前过完一轮；粉笔 980 系统课每天 1 单元起步；英语每日单词不断；SPSS 入门（论文用）。'],
+    ['2026.11.10 – 2027.02','CPA 一轮攻坚 + 考公起步','以 2026 年东奥基础班为主，每天一段、学完记一次并刷对应题，2027.03 东奥新直播课前过完一轮；粉笔 980 系统课每天一段起步；英语每日单词不断；SPSS 入门（论文用）。'],
     ['2027.03 – 2027.07','新课衔接 + 980 收尾','东奥 2027 新直播课开课后转新课节奏，旧课欠题并入刷题池；税务师联动学习同步推进；粉笔 980 于 2027 年暑假前（约 7 月）全部过完，之后不再看系统课，转入大量刷题。'],
     ['2027.08 – 2027.12','三证收割季','CPA 专业阶段 8 月下旬应考'+EST+'；资产评估师 9 月'+EST+'；税务师 11 月'+EST+'；期间考公降为每日保温刷题 30 分钟（只刷已学模块，不学新课）；六级 12 月场次冲 550+'+EST+'。'],
     ['2028.01 – 2028.06','考公刷题强化期','980 已过完，全面转入模块刷题：资料/判断/言语三大块正确率攻坚，数量与常识碎片时间，申论每周 1 篇；错题本滚动重做；论文投稿收尾。'],
@@ -838,18 +1219,27 @@ function renderPlan(){
   ].map(x=>`<div class="tl-item"><div class="tt">${x[0]}</div><div class="td"><b>${x[1]}</b><br>${x[2]}</div></div>`).join('');
   const pl=document.getElementById('paceList');
   if(!DB.courses.length){pl.innerHTML='<div class="empty">建档后这里会显示每科「日均需求」与告急状态</div>';}
-  else pl.innerHTML=DB.courses.map(c=>{
-    const need=dailyNeed(c),dl=daysTo(c.targetDate),rem=remainMins(c);
-    const share=Math.round(base/Math.max(1,activeCourses().length));
-    const status=rem<=0?['tag-green','已完成']:need<=share?['tag-green','充裕']:need<=base*0.6?['tag-orange','偏紧']:['tag-red','告急'];
-    return `<div class="flex" style="padding:9px 0;border-bottom:1px dashed var(--line)">
-      <span class="dot" style="background:${DOMAINS[c.domain].color}"></span>
-      <b style="font-size:.87rem">${c.name}</b>
-      <span class="mut">剩余 ${fmtH(rem)} · 距学完截止 ${dl} 天 · ${EXAM_NOTE[c.domain]||''}</span>
-      <span class="right tag ${status[0]}">${status[1]} · 日均需 ${need} 分钟</span>
-    </div>`;}).join('');
+  else{
+    const cyc=Math.max(1,Math.ceil(activeCourses().length/3));
+    pl.innerHTML=`<div class="note" style="margin-bottom:4px">平台不会每天硬排全部 ${activeCourses().length} 科：每天只主攻最紧的 <b>1–2 科</b>（每科一段），其余按紧迫度自然轮到（当前约每 <b>${cyc} 天</b>轮到一次），整体仍按各科目标日匀速推进。「落后/超前」= 此刻比匀速计划多了或少了几小时。</div>`+DB.courses.map(c=>{
+      const need=dailyNeed(c),dl=daysTo(c.targetDate),rem=remainMins(c),def=courseDeficit(c);
+      const share=Math.round(base/Math.max(1,activeCourses().length));
+      const status=rem<=0?['tag-green','已完成']:need<=share?['tag-green','充裕']:need<=base*0.6?['tag-orange','偏紧']:['tag-red','告急'];
+      const gapTxt=rem<=0?'':(def>0?`<span class="tag tag-red">落后 ${fmtH(def)}</span>`:`<span class="tag tag-green">超前 ${fmtH(-def)}</span>`);
+      const bd=bufferDays(c);
+      const bufTxt=bd===null?'':(bd<0
+        ?`<span class="tag tag-red">学完晚于预估考试 ${-bd} 天，请把目标日前移</span>`
+        :`<span class="tag ${bd>=28?'tag-green':'tag-orange'}">学完→预估考试缓冲 ${bd} 天</span>`);
+      return `<div class="flex" style="padding:9px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap">
+        <span class="dot" style="background:${DOMAINS[c.domain].color}"></span>
+        <b style="font-size:.87rem">${c.name}</b>
+        <span class="mut">剩余 ${fmtH(rem)} · 距学完截止 ${dl} 天</span>
+        ${gapTxt}${bufTxt}
+        <span class="right tag ${status[0]}">${status[1]} · 日均需 ${need} 分钟</span>
+      </div>`;}).join('');
+  }
   document.getElementById('certPlan').innerHTML=`
-    <div class="note"><b>三证所有科目都要完整学、一次考过</b>：CPA 6 科 + 税务师 5 科 + 资产评估 4 科，每科独立建档、独立按目标日倒排、每天都排进度，一门不落。联动只是<b>省时</b>：内容重叠的部分借 CPA 的势直接刷题，但关联科目的课仍要完整学完（错题回正保补看），评估准则等差异内容单独学。</div>
+    <div class="note"><b>三证所有科目都要完整学、一次考过</b>：CPA 6 科 + 税务师 5 科 + 资产评估 4 科，每科独立建档、独立按目标日匀速推进；排课时按紧迫度轮转，<b>不会每天硬堆所有科，也一门都不会漏</b>。<b>联动＝省时间，不是加任务</b>：你在 CPA 税法/会计/财管/经济法上学得越多，关联科目里与之重叠的部分就少听多少（课程库实时显示「联动省时 %」），重叠内容直接刷题检验、错题回补；不重叠的部分（如评估准则、涉税实务操作、行政法）照常完整学。</div>
     <h4 style="margin:10px 0 6px;font-size:.86rem;color:var(--main)">三证联动省力对照表（公开考纲重叠可核对）</h4>
     <table class="tb">
       <tr><th>先学（CPA）</th><th>联动省力</th><th>注意</th></tr>
@@ -984,11 +1374,10 @@ function renderData(){
   // 分课程明细
   const rows=DB.courses.map(c=>{
     const l=sum(x=>x.courseId===c.id&&x.kind==='learn'),q=sum(x=>x.courseId===c.id&&x.kind==='quiz');
-    const done=c.lessons.filter(x=>x.learned).length;
-    return {n:c.name,dm:c.domain,l,q,tot:l+q,prog:`${done}/${c.lessons.length} 单元`};
+    return {n:c.name,dm:c.domain,l,q,tot:l+q,prog:`${progressPct(c)}%（${fmtH(doneMins(c))}/${fmtH(effTotal(c))}）`,q2:`${c.quizDone||0}/${Math.round(doneMins(c)/60*(c.qph||20))} 题`};
   }).filter(r=>r.tot>0||DB.courses.length<=8);
-  document.getElementById('courseTable').innerHTML=rows.length?`<table class="tb"><tr><th>课程</th><th>领域</th><th>看课</th><th>刷题</th><th>合计</th><th>进度</th></tr>
-    ${rows.map(r=>`<tr><td>${r.n}</td><td>${DOMAINS[r.dm].name}</td><td>${fmtH(r.l)}</td><td>${fmtH(r.q)}</td><td><b>${fmtH(r.tot)}</b></td><td>${r.prog}</td></tr>`).join('')}</table>`
+  document.getElementById('courseTable').innerHTML=rows.length?`<table class="tb"><tr><th>课程</th><th>领域</th><th>看课</th><th>刷题</th><th>合计</th><th>进度</th><th>刷题量</th></tr>
+    ${rows.map(r=>`<tr><td>${r.n}</td><td>${DOMAINS[r.dm].name}</td><td>${fmtH(r.l)}</td><td>${fmtH(r.q)}</td><td><b>${fmtH(r.tot)}</b></td><td>${r.prog}</td><td>${r.q2}</td></tr>`).join('')}</table>`
     :'<div class="empty">建档并完成任务后，这里列出每门课各花了多少时间</div>';
   // 近14天
   const dayVals=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(13-i));
@@ -1010,12 +1399,14 @@ function renderSettings(){
   document.getElementById('setBase').value=DB.settings.base;
   document.getElementById('setCap').value=DB.settings.cap;
   document.getElementById('setBadRatio').value=String(DB.settings.badRatio);
+  document.getElementById('setPerDay').value=String(DB.settings.perDay||2);
 }
 function saveSettings(){
   DB.settings.startDate=document.getElementById('setStart').value||'2026-11-10';
   DB.settings.base=+document.getElementById('setBase').value||180;
   DB.settings.cap=+document.getElementById('setCap').value||480;
   DB.settings.badRatio=+document.getElementById('setBadRatio').value||0.7;
+  DB.settings.perDay=+document.getElementById('setPerDay').value||2;
   save();toast('设置已保存');
 }
 function exportData(){
