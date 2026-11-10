@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>关关 · 研究生全科备考平台</title>
+<style>
+:root{
+  --bg:#f4f6fa; --card:#ffffff; --ink:#1d2433; --ink2:#5b6472; --line:#e4e8f0;
+  --main:#2f5fd0; --main-bg:#eaf0fd; --ok:#1e9e6a; --ok-bg:#e5f6ef;
+  --warn:#d97b16; --warn-bg:#fdf1e2; --bad:#d64545; --bad-bg:#fdeaea;
+  --grad:linear-gradient(135deg,#2f5fd0,#6a3fd0);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:15px}
+body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:inherit}
+.topbar{background:var(--grad);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(20,40,90,.18)}
+.topbar h1{font-size:1.15rem;font-weight:700;letter-spacing:.5px}
+.topbar .sub{font-size:.78rem;opacity:.85}
+.topbar .sp{flex:1}
+.tb-btn{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);padding:6px 13px;border-radius:8px;font-size:.82rem;transition:.15s}
+.tb-btn:hover{background:rgba(255,255,255,.3)}
+.layout{display:flex;max-width:1360px;margin:0 auto}
+nav{width:188px;flex-shrink:0;padding:18px 10px;position:sticky;top:56px;align-self:flex-start;height:calc(100vh - 56px);overflow:auto}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:10px;color:var(--ink2);font-size:.9rem;margin-bottom:4px;transition:.15s;width:100%;text-align:left}
+.nav-item:hover{background:#e9edf5}
+.nav-item.active{background:var(--main-bg);color:var(--main);font-weight:600}
+.nav-item .ic{font-size:1.05rem}
+main{flex:1;padding:20px 22px 60px;min-width:0}
+.page{display:none;animation:fade .25s}
+.page.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(30,45,80,.07);border:1px solid var(--line)}
+.card h3{font-size:.98rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .tag{margin-left:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:980px){.grid2,.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.grid2,.grid4{grid-template-columns:1fr}.layout{flex-direction:column}nav{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap;gap:4px}.nav-item{width:auto;margin-bottom:0}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center}
+.stat .num{font-size:1.4rem;font-weight:700;color:var(--main)}
+.stat .lb{font-size:.75rem;color:var(--ink2);margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:.85rem;transition:.15s;border:1px solid transparent}
+.btn-primary{background:var(--main);color:#fff}
+.btn-primary:hover{background:#254eb0}
+.btn-ghost{border-color:var(--line);color:var(--ink2);background:#fff}
+.btn-ghost:hover{border-color:var(--main);color:var(--main)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-sm{padding:4px 10px;font-size:.78rem;border-radius:7px}
+.btn-danger{color:var(--bad);border:1px solid var(--bad);background:#fff}
+.btn-danger:hover{background:var(--bad-bg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600}
+.tag-blue{background:var(--main-bg);color:var(--main)}
+.tag-green{background:var(--ok-bg);color:var(--ok)}
+.tag-orange{background:var(--warn-bg);color:var(--warn)}
+.tag-red{background:var(--bad-bg);color:var(--bad)}
+.tag-gray{background:#eef1f6;color:var(--ink2)}
+.task{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;margin-bottom:9px;background:#fff;transition:.15s}
+.task.done{opacity:.62;background:#f7f9fc}
+.task.done .t-title{text-decoration:line-through}
+.task.overdue{border-color:#f0c8c8;background:#fffcfc}
+.t-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;transition:.15s;margin-top:2px}
+.t-check:hover{border-color:var(--ok)}
+.task.done .t-check{background:var(--ok);border-color:var(--ok)}
+.t-body{flex:1;min-width:0}
+.t-title{font-size:.9rem;font-weight:600}
+.t-meta{font-size:.75rem;color:var(--ink2);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.t-guide{font-size:.78rem;color:#455062;background:#f6f8fc;border-radius:8px;padding:7px 10px;margin-top:7px;line-height:1.7}
+.t-guide b{color:var(--main)}
+.prog{height:7px;background:#edf0f6;border-radius:4px;overflow:hidden;margin-top:7px}
+.prog>i{display:block;height:100%;background:var(--main);border-radius:4px;transition:width .3s}
+.frm-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.frm-row>*{flex:1;min-width:110px}
+label.fl{display:block;font-size:.78rem;color:var(--ink2);margin-bottom:4px;font-weight:600}
+input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--main);box-shadow:0 0 0 3px rgba(47,95,208,.12)}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#eef1f6;border-radius:8px;padding:5px 10px;font-size:.8rem;margin:3px 4px 3px 0}
+.mut{color:var(--ink2);font-size:.82rem}
+.note{background:#f6f9ff;border-left:3px solid var(--main);padding:10px 14px;border-radius:0 9px 9px 0;font-size:.82rem;color:#33415c;margin:10px 0;line-height:1.7}
+.note.warn{background:#fff9f2;border-color:var(--warn)}
+.note.bad{background:var(--bad-bg);border-color:var(--bad)}
+details.guide{border:1px solid var(--line);border-radius:11px;margin-bottom:10px;background:#fff;overflow:hidden}
+details.guide summary{padding:13px 16px;cursor:pointer;font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:9px;list-style:none}
+details.guide summary::-webkit-details-marker{display:none}
+details.guide summary::after{content:'▸';margin-left:auto;color:var(--ink2);transition:.2s}
+details.guide[open] summary::after{transform:rotate(90deg)}
+details.guide .g-body{padding:4px 18px 16px;font-size:.85rem;line-height:1.85;color:#333d4f}
+.g-body h4{margin:12px 0 6px;font-size:.86rem;color:var(--main)}
+.g-body ul,.g-body ol{padding-left:20px;margin:5px 0}
+.g-body li{margin-bottom:4px}
+.g-body .src{color:var(--ink2);font-size:.76rem}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#26314a;color:#fff;padding:11px 22px;border-radius:10px;font-size:.85rem;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:86vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.modal-mask{position:fixed;inset:0;background:rgba(20,28,48,.45);display:none;align-items:center;justify-content:center;z-index:80;padding:18px}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:22px 24px;max-width:560px;width:100%;max-height:88vh;overflow:auto;animation:fade .2s}
+.modal h3{margin-bottom:14px;font-size:1rem}
+.modal .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.st-day{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;font-size:.85rem}
+.st-day .d{width:86px;flex-shrink:0;font-weight:600;color:var(--ink2)}
+.st-day .bars{flex:1;display:flex;gap:4px;flex-wrap:wrap}
+.seg{height:10px;border-radius:3px;min-width:26px;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem;color:#fff;padding:0 5px}
+.empty{text-align:center;color:var(--ink2);padding:34px 0;font-size:.85rem}
+.empty .big{font-size:2rem;display:block;margin-bottom:8px}
+.roadmap-vert{border-left:2px solid var(--line);padding-left:18px;margin-left:6px}
+.tl-item{position:relative;padding-bottom:16px}
+.tl-item::before{content:'';position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--main);border:2px solid #fff;box-shadow:0 0 0 2px var(--main-bg)}
+.tl-item .tt{font-weight:600;font-size:.88rem}
+.tl-item .td{font-size:.78rem;color:var(--ink2);margin-top:2px;line-height:1.6}
+.flex{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.right{margin-left:auto}
+h2.paget{font-size:1.15rem;margin-bottom:4px}
+p.paged{color:var(--ink2);font-size:.82rem;margin-bottom:16px}
+.course-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.course-head .nm{font-weight:700;font-size:.95rem}
+.lesson{display:flex;align-items:center;gap:9px;padding:7px 10px;border-bottom:1px dashed #eef1f6;font-size:.83rem}
+.lesson:last-child{border-bottom:none}
+.lesson .ln{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lesson .lm{color:var(--ink2);font-size:.75rem;width:88px;text-align:right;flex-shrink:0}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot.g{background:var(--ok)}.dot.b{background:var(--main)}.dot.gr{background:#c7cedb}
+.badge-est{font-size:.68rem;background:var(--warn-bg);color:var(--warn);border-radius:5px;padding:1px 6px;font-weight:600}
+.linkmap{font-size:.8rem;line-height:2;color:#33415c}
+.linkmap b{color:var(--main)}
+.tlb{display:flex;gap:12px;padding:7px 12px;border-left:3px solid var(--main);background:#f8fafd;border-radius:0 8px 8px 0;margin-bottom:6px;font-size:.82rem;align-items:baseline}
+.tlb .tm{font-weight:700;color:var(--main);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tlb.busy{border-color:#c7cedb;background:#f1f3f8;color:var(--ink2)}
+.tlb.done{opacity:.55;text-decoration:line-through}
+.tlb.late{border-color:var(--bad);background:var(--bad-bg)}
+.tlb .tg{margin-left:auto;color:var(--ink2);font-size:.72rem;white-space:nowrap}
+table.tb{width:100%;border-collapse:collapse;font-size:.85rem}
+table.tb th,table.tb td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+table.tb th{background:#f6f8fc;font-weight:600;color:var(--ink2);font-size:.78rem}
+.dom-card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.stage-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.stage-row select{flex:0 0 130px}
+.stage-row input{flex:1}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>关关</h1>
+    <div class="sub">关关难过关关过 · 会计专硕全科备考平台（2026 级 · 2029.06 毕业 · 目标京津冀公职）</div>
+  </div>
+  <div class="sp"></div>
+  <span class="sub" id="todayStr"></span>
+  <button class="tb-btn" onclick="exportData()">⬇ 导出备份</button>
+  <button class="tb-btn" onclick="document.getElementById('importFile').click()">⬆ 导入</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+</header>
+
+<div class="layout">
+<nav id="nav">
+  <button class="nav-item active" data-p="today" onclick="go('today')"><span class="ic">📋</span>今日计划</button>
+  <button class="nav-item" data-p="courses" onclick="go('courses')"><span class="ic">📚</span>课程与题库</button>
+  <button class="nav-item" data-p="plan" onclick="go('plan')"><span class="ic">🗺️</span>长线规划</button>
+  <button class="nav-item" data-p="guides" onclick="go('guides')"><span class="ic">🧭</span>专项指南</button>
+  <button class="nav-item" data-p="data" onclick="go('data')"><span class="ic">📊</span>数据中心</button>
+  <button class="nav-item" data-p="settings" onclick="go('settings')"><span class="ic">⚙️</span>设置</button>
+</nav>
+
+<main>
+<!-- ============ 今日计划 ============ -->
+<section class="page show" id="page-today">
+  <h2 class="paget">今日计划</h2>
+  <p class="paged">按各科目标完成日自动拆分每日任务并排定到具体钟点；每项任务下方都写着「具体怎么干」，照着做就行。</p>
+
+  <div class="card">
+    <h3>🛠️ 今日计划生成器</h3>
+    <div class="frm-row">
+      <div><label class="fl">日期</label><input type="date" id="genDate"></div>
+      <div><label class="fl">开始学习时间</label><input type="time" id="genStart" value="18:30"></div>
+      <div><label class="fl">预计学到</label><input type="time" id="genEnd" value="22:30"></div>
+      <div><label class="fl">今日类型</label>
+        <select id="genDayType">
+          <option value="busy">📚 课多/事多（×0.6）</option>
+          <option value="normal" selected>🙂 正常日（×0.85）</option>
+          <option value="free">🏖️ 空闲日（×1.0）</option>
+        </select></div>
+      <div><label class="fl">今日状态</label>
+        <select id="genState">
+          <option value="good">💪 状态好（×1.15）</option>
+          <option value="normal" selected>🙂 正常（×1.0）</option>
+          <option value="bad">😮‍💨 拖延/状态差（保核心）</option>
+        </select></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end">
+        <button class="btn btn-primary" onclick="generateDay()">⚡ 生成 / 重新生成</button>
+      </div>
+    </div>
+    <div id="gapWarn"></div>
+    <div class="note">规则：① <b>可用时间不用你估</b>——平台按「预计学到 − 开始时间 − 已上报杂事」自动计算；② <b>昨天没做完的自动置顶</b>；③ 没看完课绝不安排对应刷题；④ 各科按「剩余课时 ÷ 距目标日天数」匀速分配，<b>绝不短期冲刺</b>；⑤ 生成后排定到几点几分，自动绕开杂事时段；白天突然有事就用下方「一键重排」。</div>
+  </div>
+
+  <div class="card">
+    <h3>⚡ 临时有事 · 一键重排</h3>
+    <div class="frm-row">
+      <div><label class="fl">事情名称</label><input type="text" id="disName" placeholder="如：学院开会"></div>
+      <div style="max-width:130px"><label class="fl">开始</label><input type="time" id="disStart"></div>
+      <div style="max-width:130px"><label class="fl">结束</label><input type="time" id="disEnd"></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="applyDisruption()">重新排程</button></div>
+    </div>
+    <div class="mut" id="disResult">上报后，任务时间轴自动绕开该时段；装不下的任务摊到未来 3 天，明日负荷会即时显示。</div>
+    <div id="disList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>✅ 今日任务清单 <span class="tag" id="todaySummary"></span></h3>
+      <div id="taskList"></div>
+      <div class="frm-row" style="margin-top:12px">
+        <div><input type="text" id="customTask" placeholder="临时加一项任务，如：背单词 30 分钟"></div>
+        <div style="flex:0 0 auto"><button class="btn btn-ghost" onclick="addCustomTask()">＋ 添加</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🕒 今日时间轴 <span class="tag tag-gray">自动绕开杂事</span></h3>
+      <div id="timeline"><div class="empty">生成计划后这里显示几点到几点干什么</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🌙 今日复盘</h3>
+    <div class="frm-row">
+      <div><label class="fl">完成度自评</label>
+        <select id="rvComplete">
+          <option value="full">全部完成 / 超额</option>
+          <option value="part">完成一部分</option>
+          <option value="little">基本没完成</option>
+        </select></div>
+      <div><label class="fl">状态归因</label>
+        <select id="rvReason">
+          <option value="none">正常</option>
+          <option value="busy">杂事太多</option>
+          <option value="tired">疲惫/状态差</option>
+          <option value="delay">自己拖延</option>
+        </select></div>
+      <div style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-ok" onclick="submitReview()">提交复盘</button></div>
+    </div>
+    <div class="mut" id="rvMsg">复盘结果参与明日任务量调节：连续完不成自动下调基准，连续完成稳步上调。</div>
+  </div>
+</section>
+
+<!-- ============ 课程与题库 ============ -->
+<section class="page" id="page-courses">
+  <h2 class="paget">课程与题库</h2>
+  <p class="paged">你只要告诉关关：考哪科、每个班型总时长多少小时。平台自动拆成学习单元、自动安排到每一天；科目关联已内置，不用你操心。</p>
+
+  <div class="card">
+    <h3>＋ 快速建档（按班型填总时长即可）</h3>
+    <div class="frm-row">
+      <div style="max-width:150px"><label class="fl">证书/领域</label>
+        <select id="ncDomain" onchange="fillSubjects()">
+          <option value="cpa">CPA（东奥）</option>
+          <option value="cta">税务师（正保）</option>
+          <option value="cav">资产评估师（正保）</option>
+          <option value="gw">考公（粉笔980等）</option>
+          <option value="en">英语</option>
+          <option value="paper">论文/软件</option>
+        </select></div>
+      <div><label class="fl">科目（关联关系已内置）</label><select id="ncSubject"></select></div>
+      <div style="max-width:170px"><label class="fl">课程名称/年份</label><input type="text" id="ncSource" placeholder="如：2026 东奥"></div>
+      <div><label class="fl">目标完成日（已按考期预填）</label><input type="date" id="ncTarget"></div>
+    </div>
+    <label class="fl">班型与总时长（课程目录里把该班型各节时长相加即可，有几个班型填几行）</label>
+    <div id="stageRows"></div>
+    <button class="btn btn-ghost btn-sm" onclick="addStageRow()">＋ 再加一个班型</button>
+    <div class="frm-row" style="margin-top:14px">
+      <div><label class="fl">每个学习单元时长（分钟）</label><input type="number" id="ncUnit" value="45" min="15" step="5"></div>
+      <div><label class="fl">每单元配套题量（题）</label><input type="number" id="ncQuiz" value="20" min="0"></div>
+      <div style="flex:2;display:flex;align-items:flex-end;justify-content:flex-end"><button class="btn btn-primary" onclick="createCourseQuick()">一键建档并拆分</button></div>
+    </div>
+    <div class="note warn">例：CPA 会计基础班目录页各节相加共 80 小时，就填「基础班 80」。平台按 45 分钟一个单元自动拆成「基础班·第 1 单元…」，看完一个单元解锁对应 20 题。时长数据以机构 App 为准如实填写，平台不预设任何课时。</div>
+  </div>
+
+  <div class="card">
+    <h3>🔗 内置联动关系（不用你选，自动生效）</h3>
+    <div class="linkmap">
+      <b>CPA《税法》</b> → 税务师《税法一》《税法二》《涉税服务实务》<br>
+      <b>CPA《会计》《财务成本管理》</b> → 税务师《财务与会计》<br>
+      <b>CPA《会计》《财管》《经济法》</b> → 资产评估师《资产评估相关知识》<br>
+      <b>CPA《经济法》</b> → 税务师《涉税服务相关法律》（部分重叠）<br>
+      <span class="mut">依据各科公开考试大纲的知识范围对照。CPA 单元学完后，关联科目的刷题自动纳入队列，趁热打铁。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📖 我的课程库 <span class="tag tag-blue" id="courseCount"></span></h3>
+    <div id="courseList"></div>
+  </div>
+</section>
+
+<!-- ============ 长线规划 ============ -->
+<section class="page" id="page-plan">
+  <h2 class="paget">长线规划</h2>
+  <p class="paged">起始日 2026.11.10。硬锚点：2027.03 前 CPA 一轮 · 2027 年内三证专业阶段 · 980 于 2027 年暑假前过完 · 六级 2027.12 前 550+ · 研二前发刊 · 主战场京津冀公职考试。考试月份为历年规律预估，已标注。</p>
+  <div class="card" id="needCard"></div>
+  <div class="card"><h3>🗺️ 总体路线图（2026.11 — 2029.06）</h3><div class="roadmap-vert" id="roadmap"></div></div>
+  <div class="card"><h3>📐 各科进度 · 日均需求 <span class="tag tag-gray">剩余课时 ÷ 距目标日天数</span></h3><div id="paceList"></div></div>
+  <div class="grid2">
+    <div class="card"><h3>🎯 考证主线（CPA 为主 · 三证联动）</h3><div id="certPlan"></div></div>
+    <div class="card"><h3>🏛️ 考公长线（目标：京津冀）</h3><div id="gwPlan"></div></div>
+  </div>
+</section>
+
+<!-- ============ 专项指南 ============ -->
+<section class="page" id="page-guides">
+  <h2 class="paget">专项指南</h2>
+  <p class="paged">方法论与资源指引，均来自公开可查的官方渠道与成熟方法。</p>
+  <div id="guideList"></div>
+</section>
+
+<!-- ============ 数据中心 ============ -->
+<section class="page" id="page-data">
+  <h2 class="paget">数据中心</h2>
+  <p class="paged">每一分努力都按领域、按课程分开记录——以后这就是你的战绩单。</p>
+  <div class="grid4" id="statCards"></div>
+  <div class="card"><h3>🏆 分领域战绩</h3><div id="domainCards"></div></div>
+  <div class="card"><h3>📚 分课程明细</h3><div id="courseTable"></div></div>
+  <div class="card"><h3>📈 近 14 天投入</h3><div id="dayBars"></div></div>
+</section>
+
+<!-- ============ 设置 ============ -->
+<section class="page" id="page-settings">
+  <h2 class="paget">设置</h2>
+  <div class="card">
+    <h3>⚙️ 排期参数</h3>
+    <div class="frm-row">
+      <div><label class="fl">备考起始日</label><input type="date" id="setStart"></div>
+      <div><label class="fl">每日基准学习时长（分钟）</label><input type="number" id="setBase" min="30" step="15"></div>
+      <div><label class="fl">每日上限（分钟，重排时不超）</label><input type="number" id="setCap" min="60" step="15"></div>
+      <div><label class="fl">状态差时保留比例</label>
+        <select id="setBadRatio"><option value="0.5">50%</option><option value="0.7" selected>70%</option></select></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+  </div>
+  <div class="card">
+    <h3>💾 数据管理</h3>
+    <p class="mut" style="margin-bottom:10px">数据仅存储于本浏览器 localStorage，不上传任何服务器。换设备/浏览器请先导出备份再导入。</p>
+    <div class="flex">
+      <button class="btn btn-ghost" onclick="exportData()">⬇ 导出 JSON 备份</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">⬆ 导入备份</button>
+      <button class="btn btn-danger right" onclick="wipeData()">🗑 清空全部数据</button>
+    </div>
+  </div>
+</section>
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-mask" id="lessonModal">
+  <div class="modal">
+    <h3 id="lmTitle">微调课时</h3>
+    <div class="frm-row">
+      <div style="flex:2"><label class="fl">单元名称</label><input type="text" id="lmName" placeholder="如：冲刺班·第 1 单元"></div>
+      <div><label class="fl">时长（分钟）</label><input type="number" id="lmMins" min="1"></div>
+      <div><label class="fl">题量</label><input type="number" id="lmQuiz" min="0" value="20"></div>
+    </div>
+    <div class="note" style="margin:4px 0">批量修正时长：每行一条「第几个单元,分钟」，如「3,62」</div>
+    <textarea id="lmBulk" rows="3" placeholder="3,62&#10;7,38"></textarea>
+    <div class="foot">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveLessons()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================== 基础与数据层 ==================== */
+const LS_KEY='guanguan_v2';
+const DOMAINS={cpa:{name:'CPA',color:'#2f5fd0',src:'东奥会计在线 App'},cta:{name:'税务师',color:'#7a4fd0',src:'正保会计网校 App'},cav:{name:'资产评估',color:'#c0567d',src:'正保会计网校 App'},gw:{name:'考公',color:'#1e9e6a',src:'粉笔 App'},en:{name:'英语',color:'#d97b16',src:'星火/新概念教材'},paper:{name:'论文/软件',color:'#0e8fa8',src:'B站/MOOC'},other:{name:'其他',color:'#8892a5',src:''}};
+const SUBJECTS={
+  cpa:[['会计','2027-03-01'],['税法','2027-03-01'],['财务成本管理','2027-03-01'],['经济法','2027-03-01'],['审计','2027-03-01'],['公司战略与风险管理','2027-03-01']],
+  cta:[['税法（一）','2027-10-15'],['税法（二）','2027-10-15'],['涉税服务实务','2027-10-15'],['财务与会计','2027-10-15'],['涉税服务相关法律','2027-10-15']],
+  cav:[['资产评估相关知识','2027-07-15'],['资产评估基础','2027-07-15'],['资产评估实务（一）','2027-07-15'],['资产评估实务（二）','2027-07-15']],
+  gw:[['行测·资料分析','2027-07-01'],['行测·判断推理','2027-07-01'],['行测·言语理解与表达','2027-07-01'],['行测·数量关系','2027-07-01'],['行测·常识判断','2027-07-01'],['申论','2027-07-01']],
+  en:[['六级词汇（星火）','2027-06-01'],['六级听力','2027-06-01'],['六级阅读','2027-06-01'],['六级写作与翻译','2027-06-01'],['新概念英语第二册','2027-06-01'],['新概念英语第三册','2027-11-30']],
+  paper:[['SPSS 零基础','2027-02-01'],['Stata 零基础','2027-04-01'],['文献阅读','2027-01-15'],['论文写作与投稿','2027-06-30']]
+};
+const STAGES=['基础班','强化班/拔高班','习题班','冲刺班','串讲班','真题/模考班','其他'];
+const LINKS={
+  'cpa|税法':['cta|税法（一）','cta|税法（二）','cta|涉税服务实务'],
+  'cpa|会计':['cta|财务与会计','cav|资产评估相关知识'],
+  'cpa|财务成本管理':['cta|财务与会计','cav|资产评估相关知识'],
+  'cpa|经济法':['cta|涉税服务相关法律','cav|资产评估相关知识']
+};
+// 考期锚点（历年规律预估）与刷题缓冲说明：学完截止日 ≠ 考试日，之间是刷题/二轮期
+const EXAM_NOTE={
+  cpa:'预计 2027 年 8 月下旬考试，3 月一轮学完后有 5 个多月二轮+刷题期',
+  cav:'预计 2027 年 9 月考试，7 月中旬学完后留约 2 个月刷题缓冲',
+  cta:'预计 2027 年 11 月考试，10 月中旬学完后留约 1 个月刷题缓冲',
+  gw:'980 属基础阶段，2027 年暑假学完后整体转入刷题与套卷期',
+  en:'2027 年 12 月场次冲刺 550+',
+  paper:'研二前（2027 年内）完成发表'
+};
+let DB=null;
+function blankDB(){return{settings:{startDate:'2026-11-10',base:180,cap:480,badRatio:0.7},courses:[],plans:{},log:[],createdAt:todayStr()};}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function maxDate(a,b){return a>b?a:b;}
+function startDate(){return DB.settings.startDate||'2026-11-10';}
+function effToday(){return maxDate(todayStr(),startDate());}
+function fmtDate(s){const[a,b,c]=s.split('-');return `${+b}月${+c}日`;}
+function fmtH(m){return m>=60?(Math.round(m/6)/10)+'h':m+'min';}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function daysTo(dateStr){return Math.max(1,Math.ceil((new Date(dateStr+'T00:00:00')-new Date(effToday()+'T00:00:00'))/864e5));}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(DB));}
+function load(){try{const r=localStorage.getItem(LS_KEY);DB=r?JSON.parse(r):blankDB();}catch(e){DB=blankDB();}}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),3000);}
+function planOf(d){if(!DB.plans[d])DB.plans[d]={mins:DB.settings.base,state:'normal',dayType:'normal',start:'18:30',end:'22:30',tasks:[],disruptions:[],reviewed:null};return DB.plans[d];}
+function addLog(date,domain,minutes,kind,courseId){DB.log.push({date,domain,minutes,kind,courseId:courseId||null});}
+function courseById(id){return DB.courses.find(c=>c.id===id);}
+function nextLesson(c){return c.lessons.find(l=>!l.learned)||null;}
+function pendingQuiz(c){let t=0;c.lessons.forEach(l=>{if(l.learned||l.quizUnlocked)t+=Math.max(0,(l.quiz||0)-(l.quizDone||0));});return t;}
+function remainMins(c){return c.lessons.filter(l=>!l.learned).reduce((s,l)=>s+l.mins,0);}
+function dailyNeed(c){return Math.ceil(remainMins(c)/daysTo(c.targetDate));}
+function activeCourses(){return DB.courses.filter(c=>c.lessons.length&&(nextLesson(c)||pendingQuiz(c)>0)).sort((a,b)=>a.targetDate<b.targetDate?-1:1);}
+function totalDailyNeed(){return activeCourses().reduce((s,c)=>s+dailyNeed(c)+Math.round(pendingQuiz(c)*1.2*0.3),0);}
+
+/* ==================== 导航 ==================== */
+function go(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('show'));
+  document.getElementById('page-'+p).classList.add('show');
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.dataset.p===p));
+  if(p==='today')renderToday();if(p==='courses')renderCourses();if(p==='plan')renderPlan();
+  if(p==='guides')renderGuides();if(p==='data')renderData();if(p==='settings')renderSettings();
+}
+
+/* ==================== 任务指引文案 ==================== */
+function guideFor(t){
+  const c=t.courseId?courseById(t.courseId):null;
+  const src=c?DOMAINS[c.domain].src:'';
+  if(t.type==='learn'&&c){
+    const l=c.lessons.find(x=>x.id===t.lessonId);
+    return `<b>怎么干：</b>打开${src} → 我的课程 → ${c.name} → 学「${l?l.name:''}」对应的内容（约 ${l?l.mins:''} 分钟），建议 1.25–1.5 倍速，边看边在讲义划重点；学完<b>立刻</b>做下方配套刷题，别拖。`;
+  }
+  if(t.type==='quiz'&&t.quizOf&&c){
+    const l=c.lessons.find(x=>x.id===t.quizOf);
+    return `<b>怎么干：</b>打开题库（${src}章节练习或手头纸质习题）→ 做「${l?l.name:''}」对应 ${l?l.quiz:''} 题 → 每道错题写一句错因（知识不会/审题/计算），3 天后重做。`;
+  }
+  if(t.type==='quiz'&&c&&c.domain==='gw')
+    return `<b>怎么干：</b>打开粉笔 App → 练习 → 选「${c.subject}」→ 做已学部分的专项题（已学多少刷多少）→ 错题写明错因，本周末重做一遍。`;
+  if(t.type==='quiz'&&c)
+    return `<b>怎么干：</b>把「${c.name}」已学部分欠下的题补上，从最早学过的单元开始刷；错题写错因。`;
+  if(/英语/.test(t.title))
+    return `<b>怎么干：</b>① 星火六级词汇：新学 1 个 List + 复习前 3 天的 List（遮住中文回忆）；② 新概念：听音频 1 遍 → 跟读 3 遍 → 合上书复述大意。`;
+  if(/SPSS|Stata|论文/.test(t.title))
+    return `<b>怎么干：</b>打开「专项指南 → SPSS/Stata 学习路径」，按当前阶段学一小节，并在软件里跟着亲手做一遍（光看不算）。`;
+  if(/考公/.test(t.title))
+    return `<b>怎么干：</b>打开粉笔 App 按任务说明执行，错题当天写错因。`;
+  return '';
+}
+
+/* ==================== 今日计划生成器 ==================== */
+function collectOverdue(today){
+  const out=[];
+  Object.keys(DB.plans).filter(d=>d<today).forEach(d=>{
+    const p=DB.plans[d];
+    p.tasks=p.tasks.filter(t=>{
+      if(!t.done){out.push({...t,title:t.title.replace(/^补 · /,'')});return false;}
+      return true;
+    });
+  });
+  return out;
+}
+function nextDayStr(d){const nd=new Date(d+'T00:00:00');nd.setDate(nd.getDate()+1);
+  return nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');}
+function generateDay(){
+  const d=document.getElementById('genDate').value||effToday();
+  const state=document.getElementById('genState').value;
+  const start=document.getElementById('genStart').value||'18:30';
+  const end=document.getElementById('genEnd').value||'22:30';
+  const dayType=document.getElementById('genDayType').value;
+  const p=planOf(d);
+  const kept=p.tasks.filter(t=>t.done);
+  // 可用时间 = 结束-开始-杂事，不用用户估算
+  let span=t2m(end)-t2m(start);if(span<=0)span+=1440;
+  const busyMin=p.disruptions.reduce((s,x)=>s+Math.max(0,t2m(x.e)-t2m(x.s)),0);
+  const mins=Math.max(0,span-busyMin);
+  p.mins=mins;p.state=state;p.start=start;p.end=end;p.dayType=dayType;
+  const typeF=dayType==='busy'?0.6:dayType==='free'?1:0.85;
+  let budget=Math.round(mins*typeF*(state==='good'?1.15:state==='bad'?+DB.settings.badRatio:1));
+  const tasks=[];const tmD=nextDayStr(d);
+  const push=(type,title,minutes,extra={})=>{if(minutes<=0||budget-used(tasks)<=0)return;
+    const m=Math.min(Math.round(minutes),budget-used(tasks));
+    const t={id:uid(),type,title,minutes:m,done:0,defer:0,...extra};t.guide=guideFor(t);tasks.push(t);};
+
+  // ① 昨日及以前未完成自动置顶；今日装不下的转存明日，绝不丢失（为未来日期生成时不拉今天的任务）
+  const overdue=d<=todayStr()?collectOverdue(d):[];
+  let overdueMin=0;
+  overdue.forEach(t=>{
+    if(t.minutes<=budget-used(tasks)){const nt={...t,id:uid(),title:'补 · '+t.title,defer:(t.defer||0)};tasks.push(nt);overdueMin+=nt.minutes;}
+    else planOf(tmD).tasks.unshift({...t,title:'补 · '+t.title});
+  });
+
+  // ② 各科按「剩余÷距目标日」分配，目标日近者优先
+  const active=activeCourses();
+  const totalNeed=active.reduce((s,c)=>s+dailyNeed(c)+Math.round(pendingQuiz(c)*1.2*0.3),0);
+  for(const c of active){
+    if(budget-used(tasks)<10)break;
+    // 配额=max(日均需求, 一节课时长)：日均需求不足一节课时也要每天至少推进一节（细水长流不等于排不进课）
+    const nl0=nextLesson(c);
+    let alloc=Math.min(Math.max(dailyNeed(c),nl0?nl0.mins:0)+Math.round(pendingQuiz(c)*1.2*0.3),budget-used(tasks));
+    if(alloc<=0)continue;
+    const pq=pendingQuiz(c);
+    if(pq>0){const m=Math.min(Math.round(pq*1.2),Math.max(15,Math.round(alloc*0.35)),alloc);
+      push('quiz',`${c.domain==='gw'?'考公滚动刷题':'补刷欠题'} · ${c.name}（欠 ${pq} 题）`,m,{courseId:c.id});
+      alloc-=m;}
+    let l=null;const sched=new Set();
+    while(alloc>0&&(l=c.lessons.find(x=>!x.learned&&!sched.has(x.id)))&&l.mins<=alloc+8){
+      sched.add(l.id);
+      push('learn',`看课 · ${c.name}｜${l.name}（${l.mins}分钟）`,l.mins,{courseId:c.id,lessonId:l.id});
+      alloc-=l.mins;
+      if(l.quiz>0&&alloc>0){const m=Math.min(Math.round(l.quiz*1.2),alloc);push('quiz',`课后即刷 · ${l.name}（${l.quiz}题）`,m,{courseId:c.id,lessonId:l.id,quizOf:l.id});alloc-=m;}
+    }
+  }
+  if(budget-used(tasks)>10)push('task','英语 · 六级单词 + 新概念朗读/精听',Math.min(30,Math.round(budget*0.1)));
+  const dow=new Date(d+'T00:00:00').getDay();
+  if((dow===2||dow===5||dow===0)&&budget-used(tasks)>15)push('task','论文技能 · SPSS/Stata 学习与实践 40 分钟',40);
+
+  let finalTasks=tasks;
+  if(state==='bad'){
+    // 保底模式：每类只留第一项；被砍的任务转存明日，绝不丢失
+    const keep=[];const seen={};
+    for(const t of tasks){const k=t.title.startsWith('补 ·')?'OD'+t.id:(t.type==='learn'?'L'+t.courseId:t.type);
+      if(!seen[k]){seen[k]=1;keep.push(t);}
+      else planOf(tmD).tasks.unshift({...t,title:t.title.startsWith('补 ·')?t.title:'补 · '+t.title});}
+    finalTasks=keep;
+  }
+  p.tasks=kept.concat(finalTasks);
+  save();
+  const needAll=totalNeed+overdueMin;
+  const availText=`今日预计可学 <b>${mins} 分钟</b>（${start}–${end}${busyMin?`，已扣杂事 ${busyMin} 分钟`:''}），按「${dayType==='busy'?'课多/事多':dayType==='free'?'空闲日':'正常日'} + ${state==='good'?'状态好':state==='bad'?'状态差':'状态正常'}」实际排 <b>${used(finalTasks)} 分钟</b>`;
+  document.getElementById('gapWarn').innerHTML=needAll>budget
+    ?`<div class="note bad">⚠ ${availText}。但按目标日倒排，今日理论需求约 <b>${needAll} 分钟</b>（各科日均需求 ${totalNeed} + 遗留 ${overdueMin}），时间不够。已按目标日远近取舍；请到「长线规划」查看告急科目，或把「预计学到」延后。</div>`
+    :`<div class="note">${availText}。今日理论需求约 ${needAll} 分钟，装得下，按部就班即可。${overdueMin>0?`<b>含昨日遗留 ${overdueMin} 分钟，已置顶，先补旧的再学新的。</b>`:''}</div>`;
+  renderToday();
+  toast(overdueMin>0?'已生成，昨日遗留任务已置顶':'今日计划已生成并排定钟点');
+}
+function used(tasks){return tasks.reduce((s,t)=>s+(t.done?0:t.minutes),0);}
+function planTotal(p){return p.tasks.reduce((s,t)=>s+t.minutes,0);}
+
+/* ==================== 时间轴 ==================== */
+function t2m(s){return parseInt(s)*60+ +s.slice(3);}
+function m2t(m){return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function renderTimeline(d){
+  const p=planOf(d);const el=document.getElementById('timeline');
+  if(!p.tasks.length){el.innerHTML='<div class="empty">生成计划后这里显示几点到几点干什么</div>';return;}
+  let cur=t2m(p.start||'18:30');
+  const busy=p.disruptions.map(x=>({...x,s:t2m(x.s),e:t2m(x.e)})).sort((a,b)=>a.s-b.s);
+  const blocks=[];
+  for(const t of p.tasks){
+    for(const b of busy){if(cur<b.e&&cur+t.minutes>b.s)cur=b.e;} // 绕开杂事
+    const end=cur+t.minutes;
+    blocks.push({s:cur,e:end,t,late:end>1439});
+    cur=end;
+  }
+  let html='';
+  // 穿插显示杂事
+  const items=[];
+  blocks.forEach(b=>items.push({m:b.s,h:`<div class="tlb ${b.t.done?'done':''} ${b.late?'late':''}"><span class="tm">${m2t(b.s)}–${m2t(b.e)}</span><span>${b.late?'⚠️ 已过零点，建议明早补：':''}${b.t.title.replace(/^(🎬|✍️|📌) /,'')}</span><span class="tg">${b.t.minutes}min</span></div>`}));
+  busy.forEach(b=>items.push({m:b.s,h:`<div class="tlb busy"><span class="tm">${m2t(b.s)}–${m2t(b.e)}</span><span>📌 ${b.name}</span></div>`}));
+  items.sort((a,b)=>a.m-b.m);
+  el.innerHTML=items.map(x=>x.h).join('');
+}
+
+/* ==================== 动态重排 ==================== */
+function applyDisruption(){
+  const name=document.getElementById('disName').value.trim()||'临时事务';
+  const s=document.getElementById('disStart').value,e=document.getElementById('disEnd').value;
+  if(!s||!e||s>=e){toast('请正确填写起止时间');return;}
+  const d=effToday();const p=planOf(d);
+  p.disruptions.push({name,s,e});
+  p.mins=Math.max(0,(p.mins||0)-(t2m(e)-t2m(s))); // 可用时间同步扣减
+  const now=new Date();const nowT=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const mins=t2m(e)-t2m(s);
+  let msgs=[`已记录「${name} ${s}–${e}」，今日时间轴已绕开该时段。`];
+  if(nowT<e){
+    let cut=Math.round(mins*0.8);
+    const remain=p.tasks.filter(t=>!t.done),after=[],spill=[];
+    for(const t of remain){
+      if(cut<=0){after.push(t);continue;}
+      if(t.minutes<=cut){cut-=t.minutes;spill.push(t);}
+      else{t.minutes-=cut;cut=0;after.push(t);}
+    }
+    p.tasks=p.tasks.filter(t=>t.done).concat(after);
+    if(spill.length){
+      for(let i=0;i<spill.length;i++){
+        const off=i%3+1;const nd=new Date();nd.setDate(nd.getDate()+off);
+        const ds=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');
+        const np=planOf(ds);
+        if(used(np.tasks)+spill[i].minutes<=DB.settings.cap)np.tasks.push({...spill[i],id:uid(),title:'补 · '+spill[i].title});
+        else msgs.push(`⚠ ${fmtDate(ds)} 已达每日上限，「${spill[i].title}」请手动安排。`);
+      }
+      msgs.push(`${spill.length} 项受影响任务已摊到未来 3 天，整体进度基本持平。`);
+    }
+  }else msgs.push('该时段已过去，今日计划无需变动。');
+  save();renderToday();
+  document.getElementById('disResult').innerHTML=msgs.join('<br>');
+  renderDisList(d);toast('已动态重排，时间轴已更新');
+}
+function renderDisList(d){
+  const p=planOf(d);
+  document.getElementById('disList').innerHTML=p.disruptions.length?p.disruptions.map(x=>`<span class="chip">📌 <b>${x.name}</b> ${x.s}–${x.e}</span>`).join(''):'';
+}
+
+/* ==================== 今日页渲染 ==================== */
+function renderToday(){
+  const d=effToday();const p=planOf(d);
+  document.getElementById('genDate').value=d;
+  document.getElementById('genState').value=p.state||'normal';
+  document.getElementById('genDayType').value=p.dayType||'normal';
+  document.getElementById('genStart').value=p.start||'18:30';
+  document.getElementById('genEnd').value=p.end||'22:30';
+  renderDisList(d);
+  const done=p.tasks.filter(t=>t.done).reduce((s,t)=>s+t.minutes,0),all=planTotal(p);
+  const sm=document.getElementById('todaySummary');
+  sm.className='tag '+(p.tasks.length&&done>=all?'tag-green':'tag-blue');
+  sm.textContent=p.tasks.length?`已完成 ${done}/${all} 分钟`:'尚未生成';
+  const el=document.getElementById('taskList');
+  if(!p.tasks.length){el.innerHTML=`<div class="empty"><span class="big">🌱</span>点击上方「生成今日计划」开始这一天</div>`;}
+  else el.innerHTML=p.tasks.map(t=>{
+    const ico={learn:'🎬',quiz:'✍️',task:'📌'}[t.type]||'📌';
+    const isOver=t.title.startsWith('补 ·');
+    const canDefer=!t.done&&(t.defer||0)<2;
+    return `<div class="task ${t.done?'done':''} ${isOver&&!t.done?'overdue':''}">
+      <button class="t-check" onclick="toggleTask('${d}','${t.id}')">${t.done?'✓':''}</button>
+      <div class="t-body">
+        <div class="t-title">${ico} ${t.title}</div>
+        <div class="t-meta"><span>⏱ ${t.minutes} 分钟</span>
+          ${t.type==='quiz'?'<span class="tag tag-orange">刷题</span>':''}${t.type==='learn'?'<span class="tag tag-blue">看课</span>':''}
+          ${isOver?'<span class="tag tag-red">遗留·先做这个</span>':''}
+          ${(t.defer||0)>0?`<span class="tag tag-red">已顺延 ${t.defer} 次</span>`:''}
+        </div>
+        ${t.guide?`<div class="t-guide">${t.guide}</div>`:''}
+      </div>
+      ${t.done?'':(canDefer?`<button class="btn btn-ghost btn-sm" onclick="bumpTask('${d}','${t.id}')">顺延到明天</button>`
+        :`<button class="btn btn-danger btn-sm" disabled title="已顺延 2 次，今天必须做">不许再拖</button>`)}
+    </div>`;}).join('');
+  renderTimeline(d);
+}
+function toggleTask(d,tid){
+  const p=planOf(d);const t=p.tasks.find(x=>x.id===tid);if(!t)return;
+  t.done=t.done?0:1;
+  if(t.done){
+    let dm='other';
+    if(t.courseId){const c=courseById(t.courseId);if(c)dm=c.domain;}
+    else if(/英语/.test(t.title))dm='en';else if(/SPSS|Stata|论文/.test(t.title))dm='paper';else if(/考公/.test(t.title))dm='gw';
+    addLog(d,dm,t.minutes,t.type==='quiz'?'quiz':t.type==='learn'?'learn':'task',t.courseId);
+    if(t.courseId){const c=courseById(t.courseId);
+      if(t.type==='learn'&&t.lessonId){
+        const l=c.lessons.find(x=>x.id===t.lessonId);
+        if(l){l.learned=1;
+          if(l.quiz>0&&!p.tasks.some(x=>x.quizOf===l.id)){
+            const nt={id:uid(),type:'quiz',title:`课后即刷 · ${l.name}（${l.quiz}题）`,minutes:Math.round(l.quiz*1.2),courseId:c.id,lessonId:l.id,quizOf:l.id,done:0,defer:0};
+            nt.guide=guideFor(nt);p.tasks.push(nt);toast('已解锁对应刷题任务');
+          }
+          // 联动：CPA 单元学完 → 关联科目下一个单元标记"可省力"，但整门课仍须完整学完
+          const linkedKeys=LINKS[(c.domain+'|'+c.subject)]||[];
+          let linkCount=0;
+          linkedKeys.forEach(k=>{
+            const lc=DB.courses.find(x=>(x.domain+'|'+x.subject)===k);
+            if(!lc)return;
+            const lu=lc.lessons.find(x=>!x.learned&&!x.quizUnlocked);
+            if(!lu)return;
+            lu.quizUnlocked=true;linkCount++;
+            const nt={id:uid(),type:'quiz',title:`联动刷题 · ${lc.name}（对应刚学内容，${lu.quiz}题）`,minutes:Math.round(lu.quiz*1.2),courseId:lc.id,lessonId:lu.id,quizOf:lu.id,done:0,defer:0};
+            nt.guide=`<b>怎么干：</b>这部分与 CPA《${c.subject}》刚学的内容重叠（公开考纲可对照），先直接刷题检测；<b>错题和没掌握的知识点，回正保课程「${lu.name}」完整补看</b>——这门课所有单元都要学完，联动只是省力，不是跳过。`;
+            p.tasks.push(nt);
+          });
+          if(linkCount)setTimeout(()=>toast(`🔗 已联动：${linkCount} 个关联科目对应内容可省力刷题（整门课仍要完整学完）`),500);
+        }
+      }
+      if(t.type==='quiz'){
+        if(t.quizOf){const l=c.lessons.find(x=>x.id===t.quizOf);if(l)l.quizDone=l.quiz;}
+        else{let need=Math.round(t.minutes/1.2);
+          for(const l of c.lessons){if(!l.learned&&!l.quizUnlocked)continue;const gap=(l.quiz||0)-(l.quizDone||0);if(gap<=0)continue;const use=Math.min(gap,need);l.quizDone+=use;need-=use;if(need<=0)break;}}}
+    }
+  }else{
+    // 取消勾选＝误点回滚：课程进度退回，自动生成的配套刷题（未做的）一并撤下，防止内容被误跳过
+    if(t.courseId){const c=courseById(t.courseId);
+      if(c&&t.type==='learn'&&t.lessonId){
+        const l=c.lessons.find(x=>x.id===t.lessonId);if(l)l.learned=0;
+        p.tasks=p.tasks.filter(x=>!(x.quizOf===t.lessonId&&!x.done));
+      }
+      if(c&&t.type==='quiz'&&t.quizOf){const l=c.lessons.find(x=>x.id===t.quizOf);if(l)l.quizDone=0;}
+    }
+  }
+  save();renderToday();
+}
+function bumpTask(d,tid){
+  const p=planOf(d);const i=p.tasks.findIndex(x=>x.id===tid);if(i<0)return;
+  const t=p.tasks[i];
+  if((t.defer||0)>=2){toast('该任务已顺延 2 次，今天必须完成');return;}
+  p.tasks.splice(i,1);
+  const nd=new Date(d+'T00:00:00');nd.setDate(nd.getDate()+1);
+  const ds=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');
+  const np=planOf(ds);
+  np.tasks.unshift({...t,defer:(t.defer||0)+1,title:t.title.startsWith('补 ·')?t.title:'补 · '+t.title});
+  save();renderToday();
+  const tm=planTotal(np);
+  toast(`已顺延（${(t.defer||0)+1}/2 次）· 明日负荷已重算为约 ${tm} 分钟，明天先补它`);
+}
+function addCustomTask(){
+  const v=document.getElementById('customTask').value.trim();if(!v)return;
+  planOf(effToday()).tasks.push({id:uid(),type:'task',title:v,minutes:30,done:0,defer:0});
+  document.getElementById('customTask').value='';save();renderToday();
+}
+function submitReview(){
+  const d=effToday();const p=planOf(d);
+  p.reviewed={complete:document.getElementById('rvComplete').value,reason:document.getElementById('rvReason').value};
+  let msg='已记录复盘。';
+  if(p.reviewed.complete==='little'||p.reviewed.reason==='tired'){DB.settings.base=Math.max(90,Math.round(DB.settings.base*0.9));msg+=' 明日基准已自动下调 10%，先稳住节奏。';}
+  else if(p.reviewed.complete==='full'){DB.settings.base=Math.min(DB.settings.cap,Math.round(DB.settings.base*1.05));msg+=' 连续完成将稳步上调基准 5%。';}
+  save();document.getElementById('rvMsg').textContent=msg;toast('复盘完成');
+}
+
+/* ==================== 课程库 ==================== */
+function fillSubjects(){
+  const dm=document.getElementById('ncDomain').value;
+  const sel=document.getElementById('ncSubject');
+  sel.innerHTML=SUBJECTS[dm].map(s=>`<option value="${s[0]}" data-t="${s[1]}">${s[0]}</option>`).join('');
+  const t=sel.options[0]&&sel.options[0].dataset.t;
+  if(t)document.getElementById('ncTarget').value=t;
+}
+document.addEventListener('change',e=>{if(e.target.id==='ncSubject'){const o=e.target.selectedOptions[0];if(o&&o.dataset.t)document.getElementById('ncTarget').value=o.dataset.t;}});
+function addStageRow(stage,hours){
+  const row=document.createElement('div');row.className='stage-row';
+  row.innerHTML=`<select>${STAGES.map(s=>`<option ${s===stage?'selected':''}>${s}</option>`).join('')}</select>
+  <input type="number" min="0" step="0.5" placeholder="该班型总时长（小时）" value="${hours||''}">
+  <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('stageRows').appendChild(row);
+}
+function createCourseQuick(){
+  const dm=document.getElementById('ncDomain').value;
+  const subj=document.getElementById('ncSubject').value;
+  const src=document.getElementById('ncSource').value.trim();
+  const unit=Math.max(15,+document.getElementById('ncUnit').value||45);
+  const quiz=+document.getElementById('ncQuiz').value||0;
+  const target=document.getElementById('ncTarget').value;
+  if(!target){toast('请填写目标完成日');return;}
+  const rows=[...document.querySelectorAll('#stageRows .stage-row')];
+  const stages=rows.map(r=>({stage:r.querySelector('select').value,hours:+r.querySelector('input').value||0})).filter(s=>s.hours>0);
+  if(!stages.length){toast('请至少填一个班型的总时长（小时）');return;}
+  if(DB.courses.some(c=>c.domain===dm&&c.subject===subj)){toast('该科目已建档，直接在课程库里微调即可');return;}
+  const lessons=[];
+  stages.forEach(st=>{
+    const totalMin=Math.round(st.hours*60);
+    const n=Math.max(1,Math.round(totalMin/unit));
+    for(let i=1;i<=n;i++){
+      const mins=i<n?unit:Math.max(10,totalMin-unit*(n-1));
+      lessons.push({id:uid(),name:`${st.stage}·第 ${i} 单元`,mins,quiz,learned:0,quizDone:0});
+    }
+  });
+  DB.courses.push({id:uid(),domain:dm,subject:subj,name:`${subj}${src?' · '+src:''}`,targetDate:target,stages,unit,lessons});
+  save();renderCourses();
+  toast(`已建档：${lessons.length} 个单元 · 距目标日每天需 ${dailyNeed(DB.courses[DB.courses.length-1])} 分钟`);
+}
+let curCourse=null;
+function openLessonModal(cid){curCourse=cid;const c=courseById(cid);
+  document.getElementById('lmTitle').textContent='微调课时 · '+c.name;
+  document.getElementById('lmName').value='';document.getElementById('lmMins').value='';document.getElementById('lmBulk').value='';
+  document.getElementById('lessonModal').classList.add('show');}
+function closeModal(){document.getElementById('lessonModal').classList.remove('show');}
+function saveLessons(){
+  const c=courseById(curCourse);if(!c)return closeModal();
+  const n=document.getElementById('lmName').value.trim(),m=+document.getElementById('lmMins').value,q=+document.getElementById('lmQuiz').value||0;
+  if(n&&m>0)c.lessons.push({id:uid(),name:n,mins:m,quiz,learned:0,quizDone:0});
+  const bulk=document.getElementById('lmBulk').value.trim();
+  if(bulk)bulk.split('\n').forEach(line=>{const[a,b]=line.split(/[,，]/).map(s=>s&&s.trim());const idx=+a-1;
+    if(idx>=0&&idx<c.lessons.length&&+b>0)c.lessons[idx].mins=+b;});
+  save();closeModal();renderCourses();toast('课时已更新');
+}
+function delCourse(cid){if(!confirm('确定删除该课程及其全部进度记录？'))return;DB.courses=DB.courses.filter(c=>c.id!==cid);save();renderCourses();}
+function delLesson(cid,lid){const c=courseById(cid);c.lessons=c.lessons.filter(l=>l.id!==lid);save();renderCourses();}
+function renameLessons(cid){const c=courseById(cid);
+  const v=prompt('批量命名：每行一个名称（按机构目录粘贴），数量不足则保持原名',c.lessons.map(l=>l.name).join('\n'));
+  if(v===null)return;v.split('\n').forEach((s,i)=>{if(s.trim()&&c.lessons[i])c.lessons[i].name=s.trim();});
+  save();renderCourses();toast('已按目录命名');
+}
+function renderCourses(){
+  document.getElementById('courseCount').textContent=DB.courses.length+' 门';
+  const el=document.getElementById('courseList');
+  if(!DB.courses.length){el.innerHTML=`<div class="empty"><span class="big">📚</span>还没有课程。建议先建：CPA 会计、税法（填各班型总时长）和粉笔 980 的行测·资料分析。</div>`;return;}
+  el.innerHTML=DB.courses.map(c=>{
+    const total=c.lessons.reduce((s,l)=>s+l.mins,0),done=c.lessons.filter(l=>l.learned).reduce((s,l)=>s+l.mins,0);
+    const qt=c.lessons.reduce((s,l)=>s+(l.quiz||0),0),qd=c.lessons.reduce((s,l)=>s+(l.quizDone||0),0);
+    const need=dailyNeed(c),dl=daysTo(c.targetDate);
+    return `<div style="border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <div class="course-head" style="padding:12px 14px;background:#f8fafd">
+        <span class="tag" style="background:${DOMAINS[c.domain].color}18;color:${DOMAINS[c.domain].color}">${DOMAINS[c.domain].name}</span>
+        <span class="nm">${c.name}</span>
+        <span class="tag tag-gray">🎯 学完截止 ${c.targetDate}（剩 ${dl} 天 · 日均需 ${need} 分钟）</span>
+        <span class="tag tag-gray" title="学完截止日到考试日之间是刷题/二轮期">⏱ ${EXAM_NOTE[c.domain]||''}</span>
+        <span class="right mut">${fmtH(done)}/${fmtH(total)} · 题 ${qd}/${qt}</span>
+        <button class="btn btn-ghost btn-sm" onclick="openLessonModal('${c.id}')">✏️微调</button>
+        <button class="btn btn-ghost btn-sm" onclick="renameLessons('${c.id}')">📑按目录命名</button>
+        <button class="btn btn-danger btn-sm" onclick="delCourse('${c.id}')">删除</button>
+      </div>
+      <div class="prog"><i style="width:${total?Math.round(done/total*100):0}%"></i></div>
+      <details><summary style="padding:8px 14px;font-size:.8rem;color:var(--ink2);cursor:pointer">展开 ${c.lessons.length} 个单元明细</summary>
+      ${c.lessons.map(l=>`<div class="lesson">
+        <span class="dot ${l.learned?(l.quizDone>=(l.quiz||0)?'g':'b'):'gr'}"></span>
+        <span class="ln">${l.learned?'✓ ':l.quizUnlocked?'🔗 ':''}${l.name}</span>
+        <span class="lm">${l.mins}min${l.quiz?` · ${l.quizDone}/${l.quiz}题`:''}</span>
+        <button class="btn btn-ghost btn-sm" onclick="delLesson('${c.id}','${l.id}')">✕</button>
+      </div>`).join('')}</details>
+    </div>`;}).join('');
+}
+
+/* ==================== 长线规划 ==================== */
+const EST='<span class="badge-est">按历年规律预估·以公告为准</span>';
+function renderPlan(){
+  const need=totalDailyNeed(),base=DB.settings.base;
+  // 建档完整性校验：防止漏科（三证所有科目都要考）
+  const missing=[];['cpa','cta','cav'].forEach(dm=>{SUBJECTS[dm].forEach(s=>{
+    if(!DB.courses.some(c=>c.domain===dm&&c.subject===s[0]))missing.push(DOMAINS[dm].name+'《'+s[0]+'》');});});
+  const missingHtml=missing.length
+    ?`<div class="note warn" style="margin-top:10px">⚠ 以下科目还没建档，平台排不了它们的进度，三证一次考过需要一门不落：<br><b>${missing.join('、')}</b><br>去「课程与题库」快速建档，每科只需填班型总时长。</div>`
+    :`<div class="note" style="margin-top:10px">✓ 三证 15 科已全部建档，一门不落。</div>`;
+  document.getElementById('needCard').innerHTML=DB.courses.length
+    ?`<h3>⏳ 当前总负荷</h3>
+      <div class="flex"><span style="font-size:.85rem">按已建档课程与目标日倒排，你每天至少需要 <b style="color:var(--main);font-size:1.2rem">${need}</b> 分钟学习；当前每日基准 <b>${base}</b> 分钟。</span>
+      <span class="right tag ${need<=base?'tag-green':need<=base*1.5?'tag-orange':'tag-red'}">${need<=base?'✓ 基准够用':need<=base*1.5?'偏紧，建议上调基准到 '+need+' 分钟':'严重不足，请上调基准或后移部分目标日'}</span></div>
+      <div class="prog" style="margin-top:10px"><i style="width:${Math.min(100,Math.round(base/Math.max(1,need)*100))}%"></i></div>${missingHtml}`
+    :`<h3>⏳ 当前总负荷</h3><div class="mut">还没建档。去「课程与题库」录入各科总时长后，这里会告诉你每天至少要学多少分钟才能按期一次通过。</div>${missingHtml}`;
+  document.getElementById('roadmap').innerHTML=[
+    ['2026.11.10 – 2027.02','CPA 一轮攻坚 + 考公起步','以 2026 年东奥基础班为主，按单元逐节推进，看一节刷一节，2027.03 东奥新直播课前过完一轮；粉笔 980 系统课每天 1 单元起步；英语每日单词不断；SPSS 入门（论文用）。'],
+    ['2027.03 – 2027.07','新课衔接 + 980 收尾','东奥 2027 新直播课开课后转新课节奏，旧课欠题并入刷题池；税务师联动学习同步推进；粉笔 980 于 2027 年暑假前（约 7 月）全部过完，之后不再看系统课，转入大量刷题。'],
+    ['2027.08 – 2027.12','三证收割季','CPA 专业阶段 8 月下旬应考'+EST+'；资产评估师 9 月'+EST+'；税务师 11 月'+EST+'；期间考公降为每日保温刷题 30 分钟（只刷已学模块，不学新课）；六级 12 月场次冲 550+'+EST+'。'],
+    ['2028.01 – 2028.06','考公刷题强化期','980 已过完，全面转入模块刷题：资料/判断/言语三大块正确率攻坚，数量与常识碎片时间，申论每周 1 篇；错题本滚动重做；论文投稿收尾。'],
+    ['2028.07 – 2028.12','套卷期 + 国考/京考','每周 2–3 套限时套卷；2028 年 11 月底国考笔试'+EST+'、12 月北京市考'+EST+'（京津冀目标内）；报名以当年公告为准，应届身份对应 2029 届。'],
+    ['2029.01 – 2029.06','津考/冀考 + 毕业','天津市考、河北省考（多省联考一般 3–4 月'+EST+'）冲刺；完成毕业论文与答辩，2029.06 毕业。']
+  ].map(x=>`<div class="tl-item"><div class="tt">${x[0]}</div><div class="td"><b>${x[1]}</b><br>${x[2]}</div></div>`).join('');
+  const pl=document.getElementById('paceList');
+  if(!DB.courses.length){pl.innerHTML='<div class="empty">建档后这里会显示每科「日均需求」与告急状态</div>';}
+  else pl.innerHTML=DB.courses.map(c=>{
+    const need=dailyNeed(c),dl=daysTo(c.targetDate),rem=remainMins(c);
+    const share=Math.round(base/Math.max(1,activeCourses().length));
+    const status=rem<=0?['tag-green','已完成']:need<=share?['tag-green','充裕']:need<=base*0.6?['tag-orange','偏紧']:['tag-red','告急'];
+    return `<div class="flex" style="padding:9px 0;border-bottom:1px dashed var(--line)">
+      <span class="dot" style="background:${DOMAINS[c.domain].color}"></span>
+      <b style="font-size:.87rem">${c.name}</b>
+      <span class="mut">剩余 ${fmtH(rem)} · 距学完截止 ${dl} 天 · ${EXAM_NOTE[c.domain]||''}</span>
+      <span class="right tag ${status[0]}">${status[1]} · 日均需 ${need} 分钟</span>
+    </div>`;}).join('');
+  document.getElementById('certPlan').innerHTML=`
+    <div class="note"><b>三证所有科目都要完整学、一次考过</b>：CPA 6 科 + 税务师 5 科 + 资产评估 4 科，每科独立建档、独立按目标日倒排、每天都排进度，一门不落。联动只是<b>省时</b>：内容重叠的部分借 CPA 的势直接刷题，但关联科目的课仍要完整学完（错题回正保补看），评估准则等差异内容单独学。</div>
+    <h4 style="margin:10px 0 6px;font-size:.86rem;color:var(--main)">三证联动省力对照表（公开考纲重叠可核对）</h4>
+    <table class="tb">
+      <tr><th>先学（CPA）</th><th>联动省力</th><th>注意</th></tr>
+      <tr><td>CPA《税法》</td><td>税务师《税法一》《税法二》《涉税服务实务》</td><td>重叠最高，但实务含申报操作等差异内容需完整学</td></tr>
+      <tr><td>CPA《会计》+《财管》</td><td>税务师《财务与会计》、资产评估《相关知识》</td><td>相关知识的会计/财管两块省力，评估准则块单独学</td></tr>
+      <tr><td>CPA《经济法》</td><td>税务师《涉税服务相关法律》、资产评估《相关知识》</td><td>部分重叠，差异法条（如行政法）完整学</td></tr>
+    </table>
+    <h4 style="margin:12px 0 6px;font-size:.86rem;color:var(--main)">资产评估师四科都要学（与 CPA 不重叠的是大头）</h4>
+    <ul style="font-size:.85rem;line-height:2;padding-left:18px">
+      <li>《资产评估基础》《实务（一）》《实务（二）》是<b>评估专业课</b>，CPA 基本覆盖不了——学完截止日已预填 <b>2027-07-15</b>，从今天起每天匀速排课，给 9 月考试 ${EST} 留约 2 个月刷题缓冲，不是临考才学。</li>
+      <li>《相关知识》三块中会计/财管/经济法借 CPA 联动省力，评估相关法规单独学。</li>
+      <li><b>税务师同理</b>：五科全部建档推进，《税法一/二》省力最多，《涉税服务实务》《涉税服务相关法律》差异内容多，更要完整跟课。</li>
+    </ul>
+    <h4 style="margin:12px 0 6px;font-size:.86rem;color:var(--main)">考期锚点</h4>
+    <ul style="font-size:.85rem;line-height:2;padding-left:18px">
+      <li>CPA 专业阶段：一般 8 月下旬 ${EST}；税务师：一般 11 月 ${EST}；资产评估师：一般 9 月 ${EST}。报名分别为 4 月 / 5–7 月 / 3–5 月 ${EST}，以协会公告为准。</li>
+      <li>顺序借力：8 月 CPA → 9 月资产评估 → 11 月税务师，每场之间做差异补充+真题，是细水长流的自然收割而非冲刺。</li>
+    </ul>`;
+  document.getElementById('gwPlan').innerHTML=`
+    <div class="note">目标京津冀：国考（11 月底–12 月初 ${EST}）、北京市考（12 月 ${EST}）、天津市考与河北省考（多省联考 3–4 月 ${EST}）。980 于 <b>2027 年暑假前</b>过完，之后全部时间刷题与套卷。</div>
+    <ul style="font-size:.85rem;line-height:2;padding-left:18px">
+      <li><b>2026.11.10 – 2027.07</b>：粉笔 980 按模块建档（目标日已预填 2027-07-01）；学完一个模块自动进入滚动刷题池，每天安排旧模块刷题防遗忘。</li>
+      <li><b>2027.07 起</b>：不再看系统课，转为模块刷题为主；超格、四海等资料按「考公」领域建档即可纳入排期。</li>
+      <li><b>2028.07 起</b>：每周 2–3 套限时套卷，套卷日计入每日上限。</li>
+    </ul>`;
+}
+
+/* ==================== 专项指南 ==================== */
+const GUIDES=[
+{t:'🏛️ 考公备考方法与京津冀考情（官方渠道）',h:`
+<h4>报名与考情（官方渠道）</h4>
+<ul><li>国考：国家公务员局考录专题网（bm.scs.gov.cn），公告一般 10 月发布、11 月底–12 月初笔试 ${EST}。</li>
+<li>北京市考：北京市人社局/北京组工网公告，一般前一年 12 月笔试 ${EST}。</li>
+<li>天津市考、河北省考：各市人事考试网/公务员局公告，近年多为多省联考，一般 3–4 月笔试 ${EST}。</li>
+<li>部分岗位要求六级成绩，以当年职位表备注为准——这是你 2027.12 前拿下 550+ 的原因。</li></ul>
+<h4>行测方法（与粉笔 980 配套）</h4>
+<ul><li>模块顺序：资料分析 → 判断推理 → 言语理解 → 数量关系 → 常识，与平台建档顺序一致。</li>
+<li>每学完一节方法精讲，当天刷对应专项题；周末做本模块限时小测。</li>
+<li>错题三问：错因（知识/审题/时间）→ 回看对应方法课 → 三天后重做。</li></ul>
+<h4>980 过完后（2027 暑假起）的刷题节奏</h4>
+<ul><li>三大模块每天各 1 组专项（各 20–40 题），数量/常识隔天；错题本周末重做。</li>
+<li>申论每周 1 篇大作文 + 2 道小题；规范表达从人民日报评论、新华网评积累（公开报纸）。</li></ul>`},
+{t:'📜 CPA / 税务师 / 资产评估：科目搭配与联动学习法',h:`
+<h4>官方信息渠道</h4>
+<ul><li>CPA：中国注册会计师协会（cicpa.org.cn）报名简章，专业阶段一般 8 月考 ${EST}。</li>
+<li>税务师：中国注册税务师协会（cctaa.cn）考试公告，一般 11 月考 ${EST}。</li>
+<li>资产评估师：中国资产评估协会（cas.org.cn），一般 9 月考 ${EST}。</li></ul>
+<h4>内容重叠（公开考纲可核对，平台已内置联动）</h4>
+<ul><li>税务师《税法一》《税法二》与 CPA《税法》高度重叠；《涉税服务实务》是税法的应用延伸。</li>
+<li>税务师《财务与会计》≈ CPA《会计》+《财管》的简化版。</li>
+<li>资产评估师《资产评估相关知识》含会计、财管、经济法三块，与 CPA 三科对应。</li></ul>
+<h4>节奏（细水长流型）</h4>
+<ul><li>每天 CPA 按「日均需求」推进 + 课后即刷；学完 CPA 对应部分 → 当天/次日刷税务师/资产评估对应题（平台自动排）。</li>
+<li>所有科目欠题进「欠题池」，平台每日按状态分配，绝不在看课前安排对应刷题。</li></ul>`},
+{t:'📝 小论文路径（研二前发表省级以上期刊）',h:`
+<h4>时间轴</h4>
+<ul><li>2026.11–2027.01：选题 + 文献综述（知网检索近 5 年会计专硕高频方向：盈余管理、审计质量、ESG、税收筹划等）。</li>
+<li>2027.02–2027.04：数据与实证（用下方 SPSS/Stata 路径学完后实操）。</li>
+<li>2027.05–2027.06：成稿、导师修改、投稿（省级以上普刊审稿通常 1–3 个月，务必预留）。</li></ul>
+<h4>检索能力补差</h4>
+<ul><li>文献：中国知网（cnki.net）高级检索，从校园网/VPN 进入（学校已购库）。</li>
+<li>数据：国泰安 CSMAR、Wind（查学校图书馆订购情况）；公开数据用国家统计局（stats.gov.cn）、巨潮资讯网（cninfo.com.cn）年报。</li>
+<li>投稿：先在「中国知网-出版物检索」核实期刊有 CN 号，避开中介代投。</li></ul>
+<h4>红线</h4><ul><li>引用数据必须标注来源，实证结果不得篡改；本平台不生成任何论文数据。</li></ul>`},
+{t:'📊 SPSS / Stata 零基础学习路径（会计专硕实证够用版）',h:`
+<h4>第一步：SPSS（1–2 周，最易上手）</h4>
+<ul><li>教材：《SPSS 统计分析基础教程》（张文彤，高等教育出版社），图书馆/电商均可获得。</li>
+<li>免费课：中国大学 MOOC（icourse163.org）检索「SPSS」，选高校开设课程跟做。</li>
+<li>必会：数据导入 → 描述统计 → 相关分析 → 多元线性回归 → T 检验/方差分析。</li></ul>
+<h4>第二步：Stata（2–4 周，实证主流）</h4>
+<ul><li>入门：B 站检索「Stata 零基础」，选有数据配套、播放量高的系列课跟敲。</li>
+<li>连享会（lianxh.cn）：连玉君团队的 Stata 中文社区，命令速查与论文复现免费开放。</li>
+<li>必会命令：import excel、summarize、correlate、regress（含 vce(robust)）、面板 xtset/xtreg、结果导出（esttab）。</li></ul>
+<h4>第三步：拿来就练</h4>
+<ul><li>下载 30–100 家上市公司面板数据，复现一篇参考文献的回归表，跑通即入门。</li>
+<li>平台每周二/五/日自动排 40 分钟软件学习，跟着做即可。</li></ul>
+<h4>软件获取</h4><ul><li>先问学校机房/图书馆有无授权版；Stata 官网（stata.com）有学生版，SPSS 官网（ibm.com/spss）有校园授权，以官网为准。</li></ul>`},
+{t:'🔤 英语六级 550+ 与系统化学习（星火 + 新概念）',h:`
+<h4>考情（官方）</h4><ul><li>CET-6 笔试一般每年 6 月、12 月各一次 ${EST}，本校教务报名。目标 2027.12 场次达到 550+（成绩约 2028.02 公布，满足「2028.05 前」）。</li></ul>
+<h4>每日三层（平台已内置每日 30 分钟英语任务）</h4>
+<ul><li>词汇层：星火六级词汇每天 1 个 List 新学 + 复习前 3 天（遮中文回忆）。</li>
+<li>输入层：新概念第二册每天 1 课：听音频 → 跟读 3 遍 → 合书复述；进阶转第三册。</li>
+<li>真题层（周末）：星火真题每周六限时半套，周日逐题精析回原文定位。</li></ul>
+<h4>阶段目标</h4>
+<ul><li>2026.11–2027.03：词汇一轮 + 新概念二册过半 + 每周半套真题。</li>
+<li>2027.04–2027.11：真题二轮（整套限时）+ 自建写作模板（从真题范文改写），2027.12 冲 550。</li></ul>`},
+{t:'⏰ 时间管理与抗拖延（关关已内置的机制）',h:`
+<h4>平台为你做的</h4>
+<ul><li><b>昨日遗留自动置顶</b>：没做完的任务第二天排在最前，标红「先做这个」，无法假装不存在。</li>
+<li><b>顺延限 2 次 + 负荷重算</b>：同一任务最多顺延 2 次；顺延瞬间明日总负荷即时重算并提示，拖多少明天一目了然。</li>
+<li><b>时间轴编排</b>：每天任务自动排定到几点几分，临时有事上报后自动绕开并顺延。</li>
+<li><b>状态自适应</b>：状态差只保核心任务；复盘连续完不成自动下调基准。</li></ul>
+<h4>你自己要做的三件事</h4>
+<ul><li>两分钟启动：不想学时只承诺「先学 2 分钟」，启动后多数会自然延续。</li>
+<li>固定锚点：每天第一个任务绑定在固定事件后（如晚饭后），降低决策成本。</li>
+<li>睡前 1 分钟在平台点「复盘」，让明天更贴合真实的你。</li></ul>`}
+];
+function renderGuides(){
+  document.getElementById('guideList').innerHTML=GUIDES.map((g,i)=>`
+  <details class="guide" ${i===0?'open':''}><summary>${g.t}</summary><div class="g-body">${g.h}
+  <p class="src">注：带 ${EST} 处为历年规律预估，届时请以官方公告为准。</p></div></details>`).join('');
+}
+
+/* ==================== 数据中心 ==================== */
+function renderData(){
+  const all=DB.log;
+  const sum=f=>all.filter(f).reduce((s,x)=>s+x.minutes,0);
+  const learnMin=sum(x=>x.kind==='learn'),quizMin=sum(x=>x.kind==='quiz'),taskMin=sum(x=>x.kind==='task');
+  const estQ=Math.round(quizMin/1.2);
+  let streak=0;for(let i=0;;i++){const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(DB.log.some(x=>x.date===ds))streak++;else if(i===0)continue;else break;}
+  document.getElementById('statCards').innerHTML=[
+    ['累计学习',fmtH(learnMin+quizMin+taskMin)],['看课总时长',fmtH(learnMin)],
+    ['刷题总时长',fmtH(quizMin)],['估算刷题量',estQ+' 题'],['连续学习',streak+' 天'],['学习天数',new Set(all.map(x=>x.date)).size+' 天'],
+    ['日均投入',all.length?fmtH(Math.round((learnMin+quizMin+taskMin)/Math.max(1,new Set(all.map(x=>x.date)).size))):'0min'],['最久一战',fmtH(Math.max(0,...Object.keys(DB.plans).map(d=>sum(x=>x.date===d))))]
+  ].map(x=>`<div class="stat"><div class="num">${x[1]}</div><div class="lb">${x[0]}</div></div>`).join('');
+  // 分领域战绩
+  const dm={};all.forEach(x=>{dm[x.domain]=dm[x.domain]||{learn:0,quiz:0,task:0};dm[x.domain][x.kind]=(dm[x.domain][x.kind]||0)+x.minutes;});
+  document.getElementById('domainCards').innerHTML=Object.keys(DOMAINS).filter(k=>dm[k]).map(k=>{
+    const v=dm[k],tot=v.learn+v.quiz+v.task;
+    return `<div class="dom-card">
+      <div class="flex"><span class="dot" style="background:${DOMAINS[k].color}"></span><b>${DOMAINS[k].name}</b>
+      <span class="right" style="font-weight:700;color:${DOMAINS[k].color}">${fmtH(tot)}</span></div>
+      <div class="flex" style="margin-top:8px;font-size:.8rem;color:var(--ink2)">
+        <span class="chip">🎬 看课 <b>${fmtH(v.learn)}</b></span>
+        <span class="chip">✍️ 刷题 <b>${fmtH(v.quiz)}</b>（约 ${Math.round(v.quiz/1.2)} 题）</span>
+        <span class="chip">📌 其他任务 <b>${fmtH(v.task)}</b></span>
+      </div>
+      <div class="prog" style="margin-top:8px"><i style="width:${tot?Math.round(v.learn/tot*100):0}%;background:${DOMAINS[k].color}"></i><i style="width:${tot?Math.round(v.quiz/tot*100):0}%;background:${DOMAINS[k].color}88"></i></div>
+    </div>`;}).join('')||'<div class="empty">还没有记录，去完成今天的任务吧</div>';
+  // 分课程明细
+  const rows=DB.courses.map(c=>{
+    const l=sum(x=>x.courseId===c.id&&x.kind==='learn'),q=sum(x=>x.courseId===c.id&&x.kind==='quiz');
+    const done=c.lessons.filter(x=>x.learned).length;
+    return {n:c.name,dm:c.domain,l,q,tot:l+q,prog:`${done}/${c.lessons.length} 单元`};
+  }).filter(r=>r.tot>0||DB.courses.length<=8);
+  document.getElementById('courseTable').innerHTML=rows.length?`<table class="tb"><tr><th>课程</th><th>领域</th><th>看课</th><th>刷题</th><th>合计</th><th>进度</th></tr>
+    ${rows.map(r=>`<tr><td>${r.n}</td><td>${DOMAINS[r.dm].name}</td><td>${fmtH(r.l)}</td><td>${fmtH(r.q)}</td><td><b>${fmtH(r.tot)}</b></td><td>${r.prog}</td></tr>`).join('')}</table>`
+    :'<div class="empty">建档并完成任务后，这里列出每门课各花了多少时间</div>';
+  // 近14天
+  const dayVals=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(13-i));
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    return sum(x=>x.date===ds);});
+  const max=Math.max(60,...dayVals);
+  let bars='';
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const segs={};all.filter(x=>x.date===ds).forEach(x=>segs[x.domain]=(segs[x.domain]||0)+x.minutes);
+    const segHtml=Object.keys(segs).map(k=>`<span class="seg" style="background:${DOMAINS[k].color};width:${Math.max(26,segs[k]/max*100)}%">${DOMAINS[k].name} ${segs[k]}m</span>`).join('');
+    bars+=`<div class="st-day"><span class="d">${i===0?'今天':fmtDate(ds)}</span><div class="bars">${segHtml||'<span class="mut">—</span>'}</div></div>`;}
+  document.getElementById('dayBars').innerHTML=bars;
+}
+
+/* ==================== 设置与备份 ==================== */
+function renderSettings(){
+  document.getElementById('setStart').value=DB.settings.startDate||'2026-11-10';
+  document.getElementById('setBase').value=DB.settings.base;
+  document.getElementById('setCap').value=DB.settings.cap;
+  document.getElementById('setBadRatio').value=String(DB.settings.badRatio);
+}
+function saveSettings(){
+  DB.settings.startDate=document.getElementById('setStart').value||'2026-11-10';
+  DB.settings.base=+document.getElementById('setBase').value||180;
+  DB.settings.cap=+document.getElementById('setCap').value||480;
+  DB.settings.badRatio=+document.getElementById('setBadRatio').value||0.7;
+  save();toast('设置已保存');
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='关关_备份_'+todayStr()+'.json';a.click();toast('已导出备份文件');
+}
+function importData(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();r.onload=()=>{try{DB=JSON.parse(r.result);save();toast('导入成功');go('today');}catch(e){toast('文件无效');}};
+  r.readAsText(f);inp.value='';
+}
+function wipeData(){if(confirm('确定清空全部数据？此操作不可恢复，建议先导出备份。')){DB=blankDB();save();go('today');toast('已清空');}}
+
+/* ==================== 初始化 ==================== */
+load();
+document.getElementById('todayStr').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+fillSubjects();
+addStageRow('基础班');
+renderToday();
+</script>
+</body>
+</html>
